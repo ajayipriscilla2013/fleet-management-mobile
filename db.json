@@ -1,0 +1,20 @@
+{
+  "trucks": [
+    {
+      "id": 1,
+      "licensePlate": "ABC123",
+      "make": "Ford",
+      "model": "F-150",
+      "driverName": "John Doe",
+      "driverContact": "555-1234"
+    },
+    {
+      "id": 2,
+      "licensePlate": "XYZ789",
+      "make": "Toyota",
+      "model": "Tundra",
+      "driverName": "Jane Smith",
+      "driverContact": "555-5678"
+    }
+  ]
+}

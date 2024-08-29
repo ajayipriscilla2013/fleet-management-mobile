@@ -1,13 +1,5 @@
-import {
-  View,
-  SafeAreaView,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  ScrollView,
-} from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { View, SafeAreaView, Alert, ScrollView, Text } from "react-native";
 import axios from "axios";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
@@ -15,7 +7,7 @@ import { z } from "zod";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import RNPickerSelect from "react-native-picker-select";
 
 const tripSchema = z.object({
   tripId: z.string().min(1, "Trip ID is required"),
@@ -40,10 +32,48 @@ const CreateTrip = () => {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<TripFormData>({
     resolver: zodResolver(tripSchema),
   });
+
+  const [trucks, setTrucks] = useState([]);
+  const [selectedTruck, setSelectedTruck] = useState<string | null>(null);
+
+  // Fetch trucks data from the backend
+  useEffect(() => {
+    const fetchTrucks = async () => {
+      try {
+        const response = await axios.get(
+          "https://dummyjson.com/c/c8ef-f2ef-4c2d-91f0"
+        );
+        console.log(response.data);
+
+        setTrucks(response.data.trucks);
+      } catch (error) {
+        console.error("Error fetching trucks:", error);
+      }
+    };
+
+    fetchTrucks();
+  }, []);
+
+  const handleTruckChange = (licensePlate: string) => {
+    setSelectedTruck(licensePlate);
+
+    // Find the selected truck and autopopulate other fields
+    const selected = trucks.find(
+      (truck) => truck.licensePlate === licensePlate
+    );
+
+    if (selected) {
+      setValue("truckMake", selected.make);
+      setValue("truckModel", selected.model);
+      setValue("driverName", selected.driverName);
+      setValue("driverContact", selected.driverContact);
+    }
+  };
 
   const handleTripSubmit: SubmitHandler<TripFormData> = async (
     data: TripFormData
@@ -51,7 +81,7 @@ const CreateTrip = () => {
     console.log(data);
 
     try {
-      const response = await axios.post("http://example.com/api/trip", data);
+      const response = await axios.post("http://10.0.2.2:3000/trips", data);
       console.log(response);
 
       if (response.status === 200) {
@@ -72,22 +102,25 @@ const CreateTrip = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center">
-      {/* <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        // behavior={Platform.OS === "ios" ? "padding" : "height"}
-      > */}
-      {/* <KeyboardAwareScrollView> */}
+    <SafeAreaView
+      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+    >
       <ScrollView
-        className="w-full m-0 p-0 flex-co "
         contentContainerStyle={{
           alignItems: "center",
           paddingVertical: 20,
           paddingHorizontal: 0,
-          marginHorizontal: 0,
         }}
+        style={{ width: "100%" }}
       >
-        <View className="w-[90%] bg-white p-4 rounded-xl">
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: "white",
+            padding: 16,
+            borderRadius: 8,
+          }}
+        >
           <Controller
             control={control}
             name="tripId"
@@ -99,7 +132,7 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.tripId?.message as string}
-                className="mb-4 "
+                style={{ marginBottom: 16 }}
               />
             )}
           />
@@ -114,7 +147,7 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.destination?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
@@ -129,7 +162,7 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.departureTime?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
@@ -144,24 +177,33 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.loadQuantity?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
-          <Controller
-            control={control}
-            name="truckLicensePlate"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Truck License Plate"
-                placeholder="Enter Truck License Plate"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                errorMessage={errors.truckLicensePlate?.message as string}
-                className="mb-4"
-              />
-            )}
+          <Text className="text-base font-semibold mb-2">
+            Truck License Plate
+          </Text>
+          <RNPickerSelect
+            placeholder={{ label: "Select Truck", value: null }}
+            value={selectedTruck}
+            // className="border border-input py-2.5 px-4 rounded-lg"
+            onValueChange={(value) => handleTruckChange(value)}
+            items={trucks.map((truck) => ({
+              label: truck.licensePlate,
+              value: truck.licensePlate,
+            }))}
+            style={{
+              inputIOS: {
+                width: "100%",
+                marginBottom: 16,
+                borderWidth: 1, // Equivalent to `border`
+                borderColor: "#D1D5DB", // Equivalent to `border-input` (you may need to adjust the color)
+                paddingVertical: 10, // Equivalent to `py-2.5`
+                paddingHorizontal: 16, // Equivalent to `px-4`
+                borderRadius: 8, // Equivalent to `rounded-lg`
+              },
+            }}
           />
           <Controller
             control={control}
@@ -174,7 +216,7 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.truckMake?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
@@ -189,7 +231,7 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.truckModel?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
@@ -204,7 +246,7 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.driverName?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
@@ -219,66 +261,20 @@ const CreateTrip = () => {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.driverContact?.message as string}
-                className="mb-4"
+                style={{ marginBottom: 16 }}
               />
             )}
           />
-          <Controller
-            control={control}
-            name="currentFuelLevel"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Current Fuel Level"
-                placeholder="Enter Current Fuel Level"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                errorMessage={errors.currentFuelLevel?.message as string}
-                className="mb-4"
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="recommendedFuelQuantity"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Recommended Fuel Quantity"
-                placeholder="Enter Recommended Fuel Quantity"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                errorMessage={errors.recommendedFuelQuantity?.message as string}
-                className="mb-4"
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="nearestFuelStation"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Nearest Fuel Station"
-                placeholder="Enter Nearest Fuel Station"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                errorMessage={errors.nearestFuelStation?.message as string}
-                className="mb-4"
-              />
-            )}
-          />
+          {/* Add other form fields as needed */}
         </View>
 
         <Button
           label="Create Trip"
-          className="w-[90%] my-4 bg-[#3A5092]"
+          style={{ width: "90%", marginTop: 16, backgroundColor: "#3A5092" }}
           // onPress={handleSubmit(handleTripSubmit)}
           onPress={() => router.push("/dashboard/TripDetails")}
         />
       </ScrollView>
-      {/* </KeyboardAwareScrollView> */}
-      {/* </KeyboardAvoidingView> */}
     </SafeAreaView>
   );
 };
