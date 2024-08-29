@@ -1,6 +1,11 @@
 import React from "react";
 import { SafeAreaView, Text, View, Pressable } from "react-native";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Entypo,
+  FontAwesome,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
 import { useRouter } from "expo-router";
 
@@ -12,24 +17,24 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center">
-      <View className="flex flex-wrap flex-row justify-between mx-2">
+    <SafeAreaView className="flex-1  items-center justify-center">
+      <View className="flex  flex-col justify-between mx-2">
         {/* Card 1 */}
         <Pressable
-          onPress={() => handlePress("/dashboard/CreateTrip")}
-          style={{ width: "48%", marginBottom: 16 }}
+          onPress={() => handlePress("/vendors")}
+          style={{ width: "100%", marginBottom: 16 }}
         >
-          <View className="bg-white rounded-xl">
+          <View className="bg-[#E2EBF7] border border-[#7ea9dc] rounded-xl">
             <Card className="w-full">
               <CardHeader className="flex">
                 <View className="flex flex-row w-full items-center   justify-between ">
-                  <CardTitle>Create Trip</CardTitle>
-                  <FontAwesome name="plus-circle" size={20} color="black" />
+                  <CardTitle className="text-[#232c48]">Vendors</CardTitle>
+                  <FontAwesome name="plus-circle" size={20} color="#4161b4" />
                 </View>
               </CardHeader>
               <CardContent>
-                <Text className="text-base text-primary">
-                  Easily Schedule a Trip
+                <Text className="text-base text-primary text-[#4c73c4]">
+                  List of Vendors
                 </Text>
               </CardContent>
             </Card>
@@ -38,20 +43,20 @@ const Home = () => {
 
         {/* Card 2 */}
         <Pressable
-          onPress={() => handlePress("/dashboard/AssignTruck")}
-          style={{ width: "48%", marginBottom: 16 }}
+          onPress={() => handlePress("/trucks/#trucks")}
+          style={{ width: "100%", marginBottom: 16 }}
         >
-          <View className="bg-white rounded-xl">
+          <View className="bg-[#E2EBF7] border border-[#7ea9dc] rounded-xl">
             <Card className="w-full">
               <CardHeader className="flex">
                 <View className="flex flex-row w-full items-center   justify-between ">
-                  <CardTitle>Assign Truck</CardTitle>
-                  <FontAwesome name="truck" size={24} color="black" />
+                  <CardTitle> Trucks</CardTitle>
+                  <FontAwesome name="truck" size={24} color="#4161b4" />
                 </View>
               </CardHeader>
 
               <CardContent>
-                <Text className="text-base text-primary">Pick a truck</Text>
+                <Text className="text-base text-primary">List of trucks</Text>
               </CardContent>
             </Card>
           </View>
@@ -59,22 +64,20 @@ const Home = () => {
 
         {/* Card 3 */}
         <Pressable
-          onPress={() => handlePress("/dashboard/TripDetails")}
-          style={{ width: "48%", marginBottom: 16 }}
+          onPress={() => handlePress("/drivers")}
+          style={{ width: "100%", marginBottom: 16 }}
         >
-          <View className="bg-white rounded-xl">
+          <View className="bg-[#E2EBF7] border border-[#7ea9dc] rounded-xl">
             <Card className="w-full">
               <CardHeader className="flex">
                 <View className="flex flex-row w-full items-center   justify-between ">
-                  <CardTitle>Trip Details</CardTitle>
-                  <FontAwesome name="info-circle" size={24} color="black" />
+                  <CardTitle>Drivers</CardTitle>
+                  <MaterialIcons name="drive-eta" size={24} color="#4161b4" />
                 </View>
               </CardHeader>
 
               <CardContent>
-                <Text className="text-base text-primary">
-                  View details of your Trip
-                </Text>
+                <Text className="text-base text-primary">List of Drivers</Text>
               </CardContent>
             </Card>
           </View>
@@ -82,70 +85,26 @@ const Home = () => {
 
         {/* Card 4 */}
         <Pressable
-          onPress={() => handlePress("/dashboard/TripProgress")}
-          style={{ width: "48%", marginBottom: 16 }}
+          onPress={() => handlePress("/tripstats")}
+          style={{ width: "100%", marginBottom: 16 }}
         >
-          <View className="bg-white rounded-xl">
+          <View className="bg-[#E2EBF7] border border-[#7ea9dc] rounded-xl">
             <Card className="w-full">
               <CardHeader className="flex">
                 <View className="flex flex-row w-full items-center   justify-between ">
-                  <CardTitle>Trip Progress</CardTitle>
-                  <FontAwesome name="map-marker" size={24} color="black" />
+                  <CardTitle>Trips Completed</CardTitle>
+                  <Entypo name="traffic-cone" size={24} color="#4161b4" />
                 </View>
               </CardHeader>
 
               <CardContent>
-                <Text className="text-base text-primary">
-                  View your trip Progress
-                </Text>
+                <Text className="text-base text-primary">Trips Statistics</Text>
               </CardContent>
             </Card>
           </View>
         </Pressable>
 
         {/* Card 5 */}
-        <Pressable
-          onPress={() => handlePress("/dashboard/FuelManagement")}
-          style={{ width: "48%", marginBottom: 16 }}
-        >
-          <View className="bg-white rounded-xl">
-            <Card className="w-full">
-              <CardHeader className="flex">
-                <View className="flex flex-row w-full items-center   justify-between ">
-                  <CardTitle>Fuel Mgt</CardTitle>
-                  <MaterialCommunityIcons name="fuel" size={24} color="black" />
-                </View>
-              </CardHeader>
-
-              <CardContent>
-                <Text className="text-base text-primary">
-                  Trip Fuel Management
-                </Text>
-              </CardContent>
-            </Card>
-          </View>
-        </Pressable>
-
-        {/* Card 6 */}
-        <Pressable
-          onPress={() => handlePress("/dashboard/CloseTrip")}
-          style={{ width: "48%", marginBottom: 16 }}
-        >
-          <View className="bg-white rounded-xl">
-            <Card className="w-full">
-              <CardHeader className="flex">
-                <View className="flex flex-row w-full items-center   justify-between ">
-                  <CardTitle>Close Trip</CardTitle>
-                  <FontAwesome name="check-circle" size={24} color="black" />
-                </View>
-              </CardHeader>
-
-              <CardContent>
-                <Text className="text-base text-primary">Complete a Trip</Text>
-              </CardContent>
-            </Card>
-          </View>
-        </Pressable>
       </View>
     </SafeAreaView>
   );
