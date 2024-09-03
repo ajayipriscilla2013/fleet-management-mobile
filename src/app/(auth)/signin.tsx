@@ -17,6 +17,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Logo from "@/assets/images/icon.png";
 import { router } from "expo-router";
 import { Link } from "expo-router";
+import api from "@/src/services/api";
+import { login } from "@/src/services/api.js";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -37,22 +39,40 @@ const HomePage = () => {
     data: LoginFormData
   ) => {
     console.log(data);
+    const transformedBody = {
+      username: data.username,
+      password: data.password,
+      dataname: "loginUser",
+    };
+    // try {
+    //   const response = await axios.post(
+    //     "http://fmabackend.charissatics.com/api/auth/auth.php",
+    //     transformedBody
+    //   );
+    //   // console.log(response);
+
+    //   if (response.status === 200) {
+    //     Alert.alert("Login Successful", "You have logged in successfully!");
+    //     router.navigate("/home/Home");
+    //   } else {
+    //     Alert.alert("Login Failed", "Please check your credentials.");
+    //   }
+    // } catch (error) {
+    //   Alert.alert("Error", "An error occurred while logging in.");
+    //   console.log(error);
+    // }
 
     try {
-      const response = await axios.post(
-        "http://fma.charissatics.com:8000/api/signin",
-        data
-      );
-      console.log(response);
-
-      if (response.status === 200) {
-        Alert.alert("Login Successful", "You have logged in successfully!");
-      } else {
-        Alert.alert("Login Failed", "Please check your credentials.");
-      }
+      // await axios.post(
+      //   "http://fmabackend.charissatics.com/api/auth/auth.php",
+      //   transformedBody
+      // );
+      login(transformedBody);
+      router.navigate("/home/Home"); // Navigate to the home screen on success
+      Alert.alert("Login Successful", "You have logged in successfully!");
     } catch (error) {
-      Alert.alert("Error", "An error occurred while logging in.");
-      console.error(error);
+      // setErrorMessage('Login failed. Please check your credentials.');
+      Alert.alert("Error", "Login failed. Please check your credentials.");
     }
   };
   return (
@@ -99,10 +119,10 @@ const HomePage = () => {
       <Button
         label="Sign In"
         className="w-[80%] my-4 bg-[#3A5092]"
-        // onPress={handleSubmit(handleLogin)}
-        onPress={() => {
-          router.navigate("/home/Home");
-        }}
+        onPress={handleSubmit(handleLogin)}
+        // onPress={() => {
+        //   router.navigate("/home/Home");
+        // }}
       />
       <Button
         label="Forgot Password ?"

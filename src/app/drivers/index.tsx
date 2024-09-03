@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
@@ -9,6 +9,7 @@ import Truck1 from "@/assets/images/truck1.png";
 import Truck2 from "@/assets/images/truck2.png";
 import Truck3 from "@/assets/images/truck3.png";
 import { Stack } from "expo-router";
+import API from "@/src/services/api";
 
 const Drivers = () => {
   const drivers = [
@@ -77,6 +78,23 @@ const Drivers = () => {
         "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
     },
   ];
+
+  // const [drivers, setDrivers] = useState([]);
+
+  // useEffect(() => {
+  //   const fetchDrivers = async () => {
+  //     try {
+  //       const response = await API.post("trip/trip.php", {
+  //         dataname: "getTruckDrivers",
+  //       });
+  //       setDrivers(response.data.data);
+  //     } catch (error) {
+  //       console.error("Error fetching trip data:", error);
+  //     }
+  //   };
+
+  //   fetchDrivers();
+  // }, []);
 
   const renderDrivers = ({ item }: any) => (
     <View className="border-[#E2E8F0] border py-6 px-4 flex-row items-center mb-4">

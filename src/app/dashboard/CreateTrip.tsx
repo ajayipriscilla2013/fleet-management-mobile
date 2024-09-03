@@ -44,13 +44,30 @@ const CreateTrip = () => {
   // Fetch trucks data from the backend
   useEffect(() => {
     const fetchTrucks = async () => {
-      try {
-        const response = await axios.get(
-          "https://dummyjson.com/c/c8ef-f2ef-4c2d-91f0"
-        );
-        console.log(response.data);
+      const requestBody = {
+        dataname: "getTrucks",
+      };
 
-        setTrucks(response.data.trucks);
+      try {
+        const response = await fetch(
+          "http://fma.charissatics.com/api/trip/trip.php",
+          {
+            method: "GET", // Specify the request method as POST
+            headers: {
+              "Content-Type": "application/json", // Set the content type to JSON
+            },
+            body: JSON.stringify(requestBody), // Convert the request body to a JSON string
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json(); // Parse the JSON response
+        console.log(data.trucks);
+
+        setTrucks(data.trucks); // Set the trucks data
       } catch (error) {
         console.error("Error fetching trucks:", error);
       }

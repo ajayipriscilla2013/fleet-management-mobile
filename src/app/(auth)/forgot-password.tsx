@@ -17,39 +17,44 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Logo from "@/assets/images/icon.png";
 import { router } from "expo-router";
 
-const loginSchema = z.object({
-  email: z.string().min(1, "email is required"),
+const ResetPasswordSchema = z.object({
+  username: z.string().min(1, "Username is required"),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type ResetPasswordFormData = z.infer<typeof ResetPasswordSchema>;
 const HomePage = () => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(ResetPasswordSchema),
   });
 
-  const handleLogin: SubmitHandler<LoginFormData> = async (
-    data: LoginFormData
+  const handleResetPassword: SubmitHandler<ResetPasswordFormData> = async (
+    data: ResetPasswordFormData
   ) => {
     console.log(data);
 
     try {
+      const transfromedBody = {
+        username: data.username,
+        dataname: "resetPassword",
+      };
       const response = await axios.post(
-        "http://fma.charissatics.com:8000/api/signin",
-        data
+        "http://fmabackend.charissatics.com/api/auth/auth.php",
+        transfromedBody
       );
       console.log(response);
 
       if (response.status === 200) {
-        Alert.alert("Login Successful", "You have logged in successfully!");
+        Alert.alert("An Email has been sent to the associated Username!");
+        router.back();
       } else {
-        Alert.alert("Login Failed", "Please check your credentials.");
+        Alert.alert("Please check your credentials.");
       }
     } catch (error) {
-      Alert.alert("Error", "An error occurred while logging in.");
+      Alert.alert("Error", "An error occurred while Reseting Password.");
       console.error(error);
     }
   };
@@ -64,16 +69,16 @@ const HomePage = () => {
       <View className=" w-[80%]">
         <Controller
           control={control}
-          name="email"
+          name="username"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label="Email"
-              placeholder="Enter your Email"
+              label="Username"
+              placeholder="Enter your Username"
               className="py-2"
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              errorMessage={errors.email?.message as string}
+              errorMessage={errors.username?.message as string}
             />
           )}
         />
@@ -82,9 +87,7 @@ const HomePage = () => {
       <Button
         label="Sign In"
         className="w-[80%] my-4 bg-[#3A5092]"
-        onPress={() => {
-          router.back();
-        }}
+        onPress={handleSubmit(handleResetPassword)}
       />
 
       {/* </KeyboardAvoidingView> */}
