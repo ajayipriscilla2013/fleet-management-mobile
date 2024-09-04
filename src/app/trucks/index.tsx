@@ -23,7 +23,7 @@ const Trucks = () => {
         });
         setTrucks(response.data.data);
       } catch (error) {
-        console.error("Error fetching trip data:", error);
+        console.error("Error fetching trucks:", error);
       }
     };
 

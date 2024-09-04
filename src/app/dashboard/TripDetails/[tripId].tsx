@@ -1,11 +1,39 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
+import API from "@/src/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { SafeAreaView, Text } from "react-native";
 
 export default function Page() {
-  const { slug } = useLocalSearchParams();
+  const { tripId  } = useLocalSearchParams();
+  console.log(tripId);
+
+  const [singleTripDetail,setSingleTripDetail]= useState()
+
+  useEffect(() => {
+    const fetchSingleTripDetail = async () => {
+      try {
+        const user_id = await AsyncStorage.getItem("user_id");
+       
+        
+        const response = await API.post("trip/trip.php", {
+          dataname: "getTrips",
+          trip_id: tripId
+        });
+       
+        setSingleTripDetail(response.data.data);
+       
+      } catch (error) {
+        console.error("API request error", error);
+      }
+    };
+
+    // fetchSingleTripDetail();
+  }, []);
+  
 
   return (
     <SafeAreaView className="flex-1 bg-white">

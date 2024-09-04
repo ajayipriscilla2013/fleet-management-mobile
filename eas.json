@@ -1,0 +1,21 @@
+{
+    "build": {
+      "charissatics": {
+        "android": {
+          "gradleCommand": ":app:assembleRelease"  
+        }
+      },
+      "preview": {
+        "android": {
+          "buildType": "apk"
+        }
+      },
+      "preview3": {
+        "developmentClient": true
+      },
+      "preview4": {
+        "distribution": "internal"
+      },
+      "production": {}
+    }
+  }

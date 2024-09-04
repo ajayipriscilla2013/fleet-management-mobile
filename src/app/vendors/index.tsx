@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import Texaco from "@/assets/images/texaco.jpg";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import API from "@/src/services/api";
 
 const data = [
   {
@@ -36,22 +38,43 @@ const data = [
   },
 ];
 
+
 const Vendors = () => {
+
+  const [vendors,setVendors]= useState([])
+
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {     
+         const response = await API.post("trip/trip.php", {
+          dataname: "getVendors",
+        
+        });
+       
+        setVendors(response.data.vendors);
+       
+      } catch (error) {
+        console.error("API request error", error);
+      }
+    };
+
+    fetchVendors();
+  }, []);
   const renderItem = ({ item }) => (
     <View className="p-4 mb-4">
-      <Image source={{ uri: item.image }} className="h-72 w-full rounded-xl" />
+      <Image source={{ uri: "https://global.ariseplay.com/amg/www.arise.tv/uploads/2023/07/NNPC-1.png" }} className="h-72 w-full rounded-xl" />
 
       <View className="mt-2 px-2">
-        <Text className="font-bold text-base">{item.title}</Text>
-        <Text className="text-[#888] ">{item.location}</Text>
+        <Text className="font-bold text-base">{item.name}</Text>
+        <Text className="text-[#888] ">{item.address}</Text>
         <View className="text-[#888] flex flex-row items-center ">
           <Text className="text-[#888]  text-xs ">{item.rating} ★</Text>
           <Text className="text-[#888]  text-xs mx-2">•</Text>
-          <Text className="text-[#888]  text-xs ">{item.difficulty}</Text>
+          <Text className="text-[#888]  text-xs ">{item.vendor_type_name}</Text>
           <Text className="text-[#888]  text-xs mx-2">•</Text>
-          <Text className="text-[#888]  text-xs ">{item.distance}</Text>
+          <Text className="text-[#888]  text-xs ">{item.email}</Text>
           <Text className="text-[#888]  text-xs mx-2">•</Text>
-          <Text className="text-[#888]  text-xs">{item.time}</Text>
+          <Text className="text-[#888]  text-xs">{item.phone_no}</Text>
         </View>
       </View>
     </View>
@@ -84,7 +107,7 @@ const Vendors = () => {
 
       {/* Content List */}
       <FlatList
-        data={data}
+        data={vendors}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         style={{ marginTop: 16 }}

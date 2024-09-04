@@ -12,106 +12,106 @@ import { Stack } from "expo-router";
 import API from "@/src/services/api";
 
 const Drivers = () => {
-  const drivers = [
-    {
-      id: "1",
-      name: "Marcus Tahoma",
-      location: "Lagos, Nigeria",
-      tripsCompleted: 5,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "2",
-      name: "Sophia Williams",
-      location: "Abuja, Nigeria",
-      tripsCompleted: 3,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "3",
-      name: "John Doe",
-      location: "Ibadan, Nigeria",
-      tripsCompleted: 7,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "4",
-      name: "Jane Smith",
-      location: "Enugu, Nigeria",
-      tripsCompleted: 2,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "5",
-      name: "Michael Johnson",
-      location: "Port Harcourt, Nigeria",
-      tripsCompleted: 4,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "6",
-      name: "Marcus Tahoma",
-      location: "Benue, Nigeria",
-      tripsCompleted: 4,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "7",
-      name: "Tofunm Banke",
-      location: "Ondo, Nigeria",
-      tripsCompleted: 11,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-    {
-      id: "8",
-      name: "Ignatius Timothy",
-      location: "Kaduna, Nigeria",
-      tripsCompleted: 11,
-      imageUrl:
-        "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
-    },
-  ];
+  // const drivers = [
+  //   {
+  //     id: "1",
+  //     name: "Marcus Tahoma",
+  //     location: "Lagos, Nigeria",
+  //     tripsCompleted: 5,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Sophia Williams",
+  //     location: "Abuja, Nigeria",
+  //     tripsCompleted: 3,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "John Doe",
+  //     location: "Ibadan, Nigeria",
+  //     tripsCompleted: 7,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "4",
+  //     name: "Jane Smith",
+  //     location: "Enugu, Nigeria",
+  //     tripsCompleted: 2,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "5",
+  //     name: "Michael Johnson",
+  //     location: "Port Harcourt, Nigeria",
+  //     tripsCompleted: 4,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "6",
+  //     name: "Marcus Tahoma",
+  //     location: "Benue, Nigeria",
+  //     tripsCompleted: 4,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "7",
+  //     name: "Tofunm Banke",
+  //     location: "Ondo, Nigeria",
+  //     tripsCompleted: 11,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  //   {
+  //     id: "8",
+  //     name: "Ignatius Timothy",
+  //     location: "Kaduna, Nigeria",
+  //     tripsCompleted: 11,
+  //     imageUrl:
+  //       "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+  //   },
+  // ];
 
-  // const [drivers, setDrivers] = useState([]);
+  const [drivers, setDrivers] = useState([]);
 
-  // useEffect(() => {
-  //   const fetchDrivers = async () => {
-  //     try {
-  //       const response = await API.post("trip/trip.php", {
-  //         dataname: "getTruckDrivers",
-  //       });
-  //       setDrivers(response.data.data);
-  //     } catch (error) {
-  //       console.error("Error fetching trip data:", error);
-  //     }
-  //   };
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const response = await API.post("trip/trip.php", {
+          dataname: "getTruckDrivers",
+        });
+        setDrivers(response.data.data);
+      } catch (error) {
+        console.error("Error fetching truck Drivers:", error);
+      }
+    };
 
-  //   fetchDrivers();
-  // }, []);
+    fetchDrivers();
+  }, []);
 
   const renderDrivers = ({ item }: any) => (
     <View className="border-[#E2E8F0] border py-6 px-4 flex-row items-center mb-4">
       <Avatar className="mr-5">
         <AvatarImage
           source={{
-            uri: item.imageUrl,
+            uri: "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
           }}
         />
         <AvatarFallback>CG</AvatarFallback>
       </Avatar>
       <View className="flex justify-between flex-1 flex-row">
         <View>
-          <Text>{item.name}</Text>
-          <Text className="text-[#64748B] text-xs">{item.location}</Text>
+          <Text>{item.driver_name}</Text>
+          <Text className="text-[#64748B] text-xs">{item.truck_plate_number}</Text>
         </View>
-        <View className="flex flex-col items-end">
+        {/* <View className="flex flex-col items-end">
           <Text className="text-[#64748B]">
             {item.tripsCompleted} Trips Completed
           </Text>
@@ -123,7 +123,7 @@ const Drivers = () => {
             />
             <Image source={ArrowRight} />
           </View>
-        </View>
+        </View> */}
       </View>
     </View>
   );
