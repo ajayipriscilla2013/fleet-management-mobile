@@ -11,83 +11,80 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 
 const assignTruckSchema = z.object({
-  truckdriver_id: z.string().min(1, "Tank Level is required"),
-  trip_id: z.string().min(1, "Tank Level is required"),
+  truckdriver_id: z.number().min(1, "Truck driver is required"),
+  trip_id: z.string().min(1, "Trip is required"),
 });
 
-type assignTruckFormData = z.infer<typeof assignTruckSchema>;
+type AssignTruckFormData = z.infer<typeof assignTruckSchema>;
 
 const AssignTruck = () => {
-
   const [drivers, setDrivers] = useState([]);
-  const [trips,setTrips]= useState([])
-  useEffect(() => {
-    const fetchDrivers = async () => {
-      try {
-        const response = await API.post("trip/trip.php", {
-          dataname: "getTruckDrivers",
-        });
-        setDrivers(response.data.data);
-      } catch (error) {
-        console.error("Error fetching truck Drivers:", error);
-      }
-    };
+  const [trips, setTrips] = useState([]);
 
+  const fetchDrivers = async () => {
+    try {
+      const response = await API.post("trip/trip.php", {
+        dataname: "getTruckDrivers",
+      });
+      console.log("Drivers fetched:", response.data);
+      setDrivers(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching truck Drivers:", error);
+      Alert.alert("Error", "Failed to fetch truck drivers");
+    }
+  };
+
+  const fetchTrips = async () => {
+    try {
+      const user_id = await AsyncStorage.getItem("user_id");
+      const response = await API.post("trip/trip.php", {
+        dataname: "getTrips",
+        user_id,
+      });
+      console.log("Trips fetched:", response.data);
+      setTrips(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      Alert.alert("Error", "Failed to fetch trips");
+    }
+  };
+
+  useEffect(() => {
     fetchDrivers();
-  }, []);
-
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const user_id = await AsyncStorage.getItem("user_id");
-       
-        
-        const response = await API.post("trip/trip.php", {
-          dataname: "getTrips",
-        });
-       
-        setTrips(response.data.data);
-       
-      } catch (error) {
-        console.error("API request error", error);
-      }
-    };
-
     fetchTrips();
   }, []);
 
-  
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<assignTruckFormData>({
+  } = useForm<AssignTruckFormData>({
     resolver: zodResolver(assignTruckSchema),
   });
 
-  const onSubmit = async(data: assignTruckFormData) => {
-    const user_id = await AsyncStorage.getItem("user_id");
-    const formattedData = {
-     truckdriver_id: data.truckdriver_id,
-  trip_id: data.trip_id,
-  user_id,
-  dataname: "assignTruckDriverToTrip"
-    };
+  const onSubmit = async (data: AssignTruckFormData) => {
     console.log("Form data:", data);
     try {
+      const user_id = await AsyncStorage.getItem("user_id");
+      const formattedData = {
+        truckdriver_id: data.truckdriver_id,
+        trip_id: data.trip_id,
+        user_id,
+        dataname: "assignTruckDriverToTrip"
+      };
+      console.log("Sending data:", formattedData);
+
       const response = await API.post("trip/trip.php", formattedData);
-  
       console.log("API Response:", response.data);
-  
-      if (response.status === 201) {
+
+      if (response.data.status === "success") {
         Alert.alert(
-          "Trip Created",
-          "Your trip details have been successfully submitted!"
+          "Assignment Successful",
+          "The truck driver has been successfully assigned to the trip!"
         );
-        router.push("/dashboard/createdtrips")
-      }
-       else {
-        Alert.alert("Submission Failed", "Please check your input.");
+        router.push("/dashboard/createdtrips");
+      } else {
+        Alert.alert("Submission Failed", response.data.message || "Please check your input.");
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -97,25 +94,24 @@ const AssignTruck = () => {
       }
       Alert.alert(
         "Error",
-        "An error occurred while submitting the trip details."
+        "An error occurred while submitting the assignment details."
       );
     }
   };
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center">
       <ScrollView
-        className="w-full m-0 p-0 flex-co "
+        className="w-full m-0 p-0 flex-col"
         contentContainerStyle={{
           alignItems: "center",
           paddingVertical: 20,
           paddingHorizontal: 0,
           marginHorizontal: 0,
         }}
-        // contentContainerStyle={{ paddingHorizontal: 16, flexGrow: 1 }}
-        // keyboardShouldPersistTaps="handled"
       >
         <View className="w-[90%] bg-white p-4 rounded-xl">
-        <Text className="text-base font-semibold mb-2">Drivers</Text>
+          <Text className="text-base font-semibold mb-2">Drivers</Text>
           <Controller
             control={control}
             name="truckdriver_id"
@@ -125,7 +121,7 @@ const AssignTruck = () => {
                 value={value}
                 onValueChange={onChange}
                 items={drivers.map((driver) => ({
-                  label: `${driver.driver_name} ${driver.truck_plate_number} `,
+                  label: `${driver.driver_name} ${driver.truck_plate_number}`,
                   value: driver.id,
                 }))}
                 style={{
@@ -142,8 +138,11 @@ const AssignTruck = () => {
               />
             )}
           />
+          {errors.truckdriver_id && (
+            <Text className="text-red-500">{errors.truckdriver_id.message}</Text>
+          )}
 
-<Text className="text-base font-semibold mb-2">Trips</Text>
+          <Text className="text-base font-semibold mb-2">Trips</Text>
           <Controller
             control={control}
             name="trip_id"
@@ -153,7 +152,7 @@ const AssignTruck = () => {
                 value={value}
                 onValueChange={onChange}
                 items={trips.map((trip) => ({
-                  label: `${trip.origin} to ${trip.destination} `,
+                  label: `${trip.origin} to ${trip.destination}`,
                   value: trip.trip_id,
                 }))}
                 style={{
@@ -170,11 +169,14 @@ const AssignTruck = () => {
               />
             )}
           />
+          {errors.trip_id && (
+            <Text className="text-red-500">{errors.trip_id.message}</Text>
+          )}
         </View>
 
         <Button
           label="Submit"
-          className=" my-4 bg-[#3A5092] w-[90%]"
+          className="my-4 bg-[#3A5092] w-[90%]"
           onPress={handleSubmit(onSubmit)}
         />
       </ScrollView>
