@@ -20,7 +20,11 @@
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "NSCameraUsageDescription": "This app requires access to your camera.",
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library.",
+        "NSLocationWhenInUseUsageDescription": "This app requires access to your location when the app is in use.",
+        "NSLocationAlwaysUsageDescription": "This app requires access to your location at all times."
       },
       "bundleIdentifier": "com.treasurepraise.MyUniversallyStyledApp"
     },
@@ -30,7 +34,15 @@
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
-      "package": "com.treasurepraise.MyUniversallyStyledApp"
+      "package": "com.treasurepraise.MyUniversallyStyledApp",
+      "permissions": [
+        "INTERNET",
+      "READ_EXTERNAL_STORAGE",
+      "WRITE_EXTERNAL_STORAGE",
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",

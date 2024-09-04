@@ -31,7 +31,7 @@ export default function Page() {
       }
     };
 
-    // fetchSingleTripDetail();
+    fetchSingleTripDetail();
   }, []);
   
 

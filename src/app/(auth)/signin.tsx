@@ -63,11 +63,14 @@ const HomePage = () => {
     // }
 
     try {
-      // await axios.post(
-      //   "http://fmabackend.charissatics.com/api/auth/auth.php",
-      //   transformedBody
-      // );
-      login(transformedBody);
+    
+      const response =await  login(transformedBody);
+      if (response.status === 200) {
+            Alert.alert("Login Successful", "You have logged in successfully!");
+            router.navigate("/home/Home");
+          } else {
+            Alert.alert("Login Failed", "Please check your credentials.");
+          }
       router.navigate("/home/Home"); // Navigate to the home screen on success
       Alert.alert("Login Successful", "You have logged in successfully!");
     } catch (error) {
