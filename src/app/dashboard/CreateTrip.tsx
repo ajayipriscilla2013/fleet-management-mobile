@@ -205,8 +205,11 @@ const CreateTrip = () => {
                     value={value || date}
                     mode="datetime"
                     display={Platform.OS === "ios" ? "spinner" : "default"}
+
                     onChange={(event, selectedDate) => {
-                      setShowDatePicker(false);
+                      if (Platform.OS === 'android') {
+                        setShowDatePicker(false);
+                      }
                       if (selectedDate) {
                         setDate(selectedDate);
                         onChange(selectedDate);

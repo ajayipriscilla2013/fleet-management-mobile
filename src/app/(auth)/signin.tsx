@@ -71,11 +71,10 @@ const HomePage = () => {
           } else {
             Alert.alert("Login Failed", "Please check your credentials.");
           }
-      router.navigate("/home/Home"); // Navigate to the home screen on success
-      Alert.alert("Login Successful", "You have logged in successfully!");
     } catch (error) {
       // setErrorMessage('Login failed. Please check your credentials.');
-      Alert.alert("Error", "Login failed. Please check your credentials.");
+      Alert.alert("Error", "An error occurred while logging in.");
+      console.log(error)  
     }
   };
   return (

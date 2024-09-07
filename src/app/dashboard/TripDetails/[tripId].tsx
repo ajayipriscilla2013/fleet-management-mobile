@@ -9,9 +9,9 @@ import { SafeAreaView, Text } from "react-native";
 
 export default function Page() {
   const { tripId  } = useLocalSearchParams();
-  console.log(tripId);
+  // console.log(tripId);
 
-  const [singleTripDetail,setSingleTripDetail]= useState()
+  const [singleTripDetail,setSingleTripDetail]= useState({})
 
   useEffect(() => {
     const fetchSingleTripDetail = async () => {
@@ -20,11 +20,13 @@ export default function Page() {
        
         
         const response = await API.post("trip/trip.php", {
-          dataname: "getTrips",
+          dataname: "getTrip",
           trip_id: tripId
         });
        
         setSingleTripDetail(response.data.data);
+        // console.log(response.data.data);
+        
        
       } catch (error) {
         console.error("API request error", error);
@@ -49,26 +51,30 @@ export default function Page() {
             <View className="mb-6">
               <View className="mb-2 flex flex-row justify-between">
                 <Text className="font-semibold">Trip ID:</Text>
-                <Text>12345</Text>
+                <Text>{singleTripDetail.trip_id}</Text>
+              </View>
+              <View className="mb-2 flex flex-row justify-between">
+                <Text className="font-semibold">Origin:</Text>
+                <Text>{singleTripDetail.origin}</Text>
               </View>
               <View className="mb-2 flex flex-row justify-between">
                 <Text className="font-semibold">Destination:</Text>
-                <Text>Abuja</Text>
+                <Text>{singleTripDetail.destination}</Text>
               </View>
               <View className="mb-2 flex flex-row justify-between">
-                <Text className="font-semibold">Departure Time:</Text>
-                <Text>10:00 AM</Text>
+                <Text className="font-semibold">Schedule Time:</Text>
+                <Text>{singleTripDetail.schedule_time}</Text>
               </View>
               <View className="mb-2 flex flex-row justify-between">
                 <Text className="font-semibold">Load Quantity:</Text>
-                <Text>5000 kg</Text>
+                <Text>{singleTripDetail.loading_qty}kg</Text>
               </View>
             </View>
           </CardContent>
         </Card>
 
         {/* Truck and Driver Assigned */}
-        <Card className="mb-8">
+        {/* <Card className="mb-8">
           <CardHeader>
             <CardTitle>
               <Text className="text-xl font-bold mb-4">
@@ -92,10 +98,10 @@ export default function Page() {
               </View>
             </View>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Fuel Information */}
-        <Card className="mb-8">
+        {/* <Card className="mb-8">
           <CardHeader>
             <CardTitle>
               <Text className="text-xl font-bold mb-4">Fuel Information</Text>
@@ -119,7 +125,7 @@ export default function Page() {
               </View>
             </View>
           </CardContent>
-        </Card>
+        </Card> */}
       </ScrollView>
     </SafeAreaView>
   );

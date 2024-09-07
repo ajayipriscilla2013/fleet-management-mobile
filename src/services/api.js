@@ -10,8 +10,10 @@ export const login = async (body) => {
   try {
     // Attempt to login
     const response = await API.post("auth/auth.php", body);
-
+    
     const { token, user_id } = response.data;
+    console.log("token:", token);
+    console.log("user_Id:", user_id);
 
     // Store the JWT token based on the platform
     if (Platform.OS === "web") {

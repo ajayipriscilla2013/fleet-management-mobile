@@ -8,7 +8,10 @@
       "preview": {
         "android": {
           "buildType": "apk"
-        }
+        },
+        "env": {
+          "ANDROID_HOME": "/Users/treasure-praise/Downloads/Android/sdk"
+      }
       },
       "preview3": {
         "developmentClient": true

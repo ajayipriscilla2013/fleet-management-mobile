@@ -10,9 +10,10 @@ const Layout = () => {
         name="forgot-password"
         options={{
           headerShown: true,
-          headerLeft: () => (
-            <Button title="< Back" onPress={() => router.back()} />
-          ),
+          headerBackTitle: "Back",
+          // headerLeft: () => (
+          //   <Button title="< Back" onPress={() => router.back()} />
+          // ),
         }}
       />
     </Stack>
