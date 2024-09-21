@@ -32,7 +32,10 @@ function TabsList({
 }: React.ComponentPropsWithoutRef<typeof View>) {
   return (
     <View
-      className={cn("flex flex-row justify-center", className)}
+      className={cn(
+        "flex-row px-6 gap-2 justify-start bg-white py-[6.5px]", // Similar to your filter button container
+        className
+      )}
       {...props}
     />
   );
@@ -52,20 +55,21 @@ function TabsTrigger({
   ...props
 }: TabsTriggerProps) {
   const { activeTab, setActiveTab } = useContext(TabsContext);
-  // bg-[#3A5092] bg-muted bg-foreground
+
   return (
     <TouchableOpacity
-      className={cn("px-8 py-3 rounded-md w-1/2 bg-white", {
-        "bg-[#3A5092]": activeTab === value,
-        className,
-      })}
+      className={cn(
+        "px-4 py-2 rounded-lg", // Shared styles
+        activeTab === value ? "bg-[#394F91]" : "bg-gray-200", // Active and Inactive background colors
+        className
+      )}
       onPress={() => setActiveTab(value)}
       {...props}
     >
       <Text
         className={cn(
-          "font-medium text-center text-muted-foreground",
-          { "text-background": activeTab === value },
+          "text-center", // Shared styles for text
+          activeTab === value ? "text-white" : "text-gray-700", // Active and Inactive text colors
           textClasses
         )}
       >

@@ -8,6 +8,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useColorScheme } from "@/src/components/useColorScheme";
 
@@ -53,15 +54,19 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
+  const queryClient = new QueryClient();
   return (
+    <QueryClientProvider client={queryClient}>
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
+      
+      {/* Default Portal Host (one per app) */}
         {/* <Stack.Screen name="home/dashboard" options={{ headerShown: false }} /> */}
         {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
         {/* <Stack.Screen name="modal" options={{ presentation: "modal" }} /> */}
       </Stack>
     </ThemeProvider>
+    </QueryClientProvider>
   );
 }

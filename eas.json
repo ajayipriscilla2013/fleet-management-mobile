@@ -10,7 +10,7 @@
           "buildType": "apk"
         },
         "env": {
-          "ANDROID_HOME": "/Users/treasure-praise/Downloads/Android/sdk"
+          "ANDROID_HOME": "/Users/treasure-praise/Library/Android/sdk"
       }
       },
       "preview3": {
