@@ -8,7 +8,20 @@ const Layout = () => {
     <Stack>
      
       <Stack.Screen
-        name="DriverTripDetails"
+        name="[DriverTripDetails]"
+        options={{
+          headerShown: true,
+          headerBackTitle: "Back",
+          headerTitle:"Trip Details",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+            <Back/>
+          </TouchableOpacity>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="DriverTrips"
         options={{
           headerShown: true,
           headerBackTitle: "Back",
@@ -33,7 +46,7 @@ const Layout = () => {
         }}
       />
        <Stack.Screen
-        name="loadingPoint"
+        name="confirmLoading"
         options={{
           headerShown: true,
           headerBackTitle: "Back",
@@ -45,7 +58,7 @@ const Layout = () => {
         }}
       />
        <Stack.Screen
-        name="offloadingPoint"
+        name="ConfirmOffloading"
         options={{
           headerShown: true,
           headerBackTitle: "Back",

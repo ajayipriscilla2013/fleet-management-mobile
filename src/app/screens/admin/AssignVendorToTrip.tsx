@@ -334,7 +334,7 @@ const AssignVendorScreen = () => {
     <View className="mb-4">
          <Text className="text-gray-600 mb-[10px]">Description</Text>
       <TextInput
-        placeholder="Role"
+        placeholder="Provide a Description"
         keyboardType="numeric"
         value={formData.role}
         onChangeText={(text) => setFormData({ ...formData, role: text })}

@@ -10,9 +10,9 @@ export const login = async (body) => {
   try {
     // Attempt to login
     const response = await API.post("auth/auth.php", body);
-    console.log(response);
+    console.log(response.data);
     
-    const { token, user_id } = response.data;
+    const { token, user_id} = response.data;
     console.log("token:", token);
     console.log("user_Id:", user_id);
 

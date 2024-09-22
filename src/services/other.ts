@@ -91,6 +91,57 @@ export const getTrips = async () => {
   }
 };
 
+export const getInitiatedTrips = async () => {
+  try {
+    const response = await API.post("trip/trip.php", {
+      dataname: "getInitiatedTrips",
+    });
+    // console.log(response.data.data);
+    return response.data.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getInProgressTrips = async () => {
+  try {
+    const response = await API.post("trip/trip.php", {
+      dataname: "getInProgressTrips",
+    });
+    
+  //   if (response.data.error === "Not Found") {
+  //     throw new Error("No trips found");
+  //  }    
+  //   else {
+     
+  //     return response.data.data
+  //   }
+  return response.data.data
+  } catch (error) {
+    // console.error("Error fetching in-progress trips:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+};
+
+export const getCompletedTrips = async () => {
+  try {
+    const response = await API.post("trip/trip.php", {
+      dataname: "getCompletedTrips",
+    });
+  //   if (response.data.error === "Not Found") {
+  //     throw new Error("No trips found");
+  //  }    
+  //   else {
+     
+  //     return response.data.data
+  //   }
+  return response.data.data
+  } catch (error) {
+    console.error("Error fetching completed trips:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+};
+
 export const getSingleTrip = async (tripId) => {
   try {
     const response = await API.post("trip/trip.php", {

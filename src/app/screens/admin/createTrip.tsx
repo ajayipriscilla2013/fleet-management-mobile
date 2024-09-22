@@ -76,7 +76,6 @@ const CreateTripForm = () => {
       setModalVisible(true);
       // Handle success (e.g., show a success message, navigate to another screen)
       // QueryClient.invalidateQueries('trips'); // Assuming you have a 'trips' query to refetch
-      router.navigate("/screens/admin/AssignTruckDriver");
     },
     onError: (error) => {
       console.error("Error creating trip", error);

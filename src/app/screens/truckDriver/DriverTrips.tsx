@@ -1,29 +1,29 @@
 import React from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Platform,
   SafeAreaView,
-  StatusBar,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
+  Pressable,
+  TouchableOpacity,
+  TextInput,
+  Platform,
+  StatusBar,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
+import { router, Stack, useRouter } from "expo-router";
 import SearchIcon from "@/assets/svgs/search.svg";
 import FilterIcon from "@/assets/svgs/filter.svg";
+import ClockIcon from "@/assets/svgs/clock.svg";
 import LocationIcon from "@/assets/svgs/location2.svg";
 import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
 import { Badge } from "@/components/Badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
+import { getCompletedTripsForDriver, getInitiatedTripsForDriver, getInProgressTripsForDriver } from "@/src/services/drivers";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getCompletedTrips,
-  getInitiatedTrips,
-  getInProgressTrips,
-} from "@/src/services/other";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 
 const Trip = () => {
@@ -34,12 +34,12 @@ const Trip = () => {
   };
 
   const {
-    data: initiatedTripsData,
+    data: initiatedTripsData=[],
     isLoading: isInitiatedProgressLoading,
     error: initiatedError,
   } = useQuery({
-    queryKey: ["initiatedTrips"],
-    queryFn: getInitiatedTrips,
+    queryKey: ["initiatedTripsforDriver"],
+    queryFn: getInitiatedTripsForDriver,
   });
 
   const {
@@ -49,7 +49,7 @@ const Trip = () => {
     isLoading: isInProgressLoading,
   } = useQuery({
     queryKey: ["inProgressTrips"],
-    queryFn: getInProgressTrips,
+    queryFn: getInProgressTripsForDriver,
   });
 
   const {
@@ -59,14 +59,15 @@ const Trip = () => {
     isLoading: isDeliveredLoading,
   } = useQuery({
     queryKey: ["deliveredTrips"],
-    queryFn: getCompletedTrips,
+    queryFn: getCompletedTripsForDriver,
   });
+
 
   const renderInititatedTripItem = ({ item }) => (
     <TouchableOpacity
       onPress={() =>
         handlePress(
-          `/screens/admin/AdminTripDetailsScreen?status=initiated&tripId=${item.trip_id}`
+          `/screens/truckDriver/${item.trip_id}`
         )
       }
     >
@@ -103,7 +104,7 @@ const Trip = () => {
     <TouchableOpacity
       onPress={() =>
         handlePress(
-          `/screens/admin/AdminTripDetailsScreen?status=inprogress&tripId=${item.trip_id}`
+          `/screens/truckDriver/DriverTripDetailsScreen?tripId=${item.trip_id}`
         )
       }
     >
@@ -140,7 +141,7 @@ const Trip = () => {
     <TouchableOpacity
       onPress={() =>
         handlePress(
-          `/screens/admin/AdminTripDetailsScreen?status=inprogress&tripId=${item.trip_id}`
+          `/screens/truckDriver/DriverTripDetailsScreen?tripId=${item.trip_id}`
         )
       }
     >
@@ -239,7 +240,7 @@ const Trip = () => {
     if (deliveredTripsData.length === 0) {
       return (
         <View className="flex items-center justify-center mt-10">
-          <EmptyScreen/>
+           <EmptyScreen />
           <Text className="text-lg text-gray-500">
             No Delivered trips found.
           </Text>
@@ -269,12 +270,24 @@ const Trip = () => {
     if (initiatedError) {
       return (
         <View className="flex items-center justify-center mt-10">
+          <EmptyScreen/>
           <Text className="text-lg text-red-500">
             Error: {initiatedError.message}
           </Text>
         </View>
       );
     }
+    if (initiatedTripsData.length === 0) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen/>
+          <Text className="text-lg text-gray-500">
+            No initiated trips found.
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <FlatList
         data={initiatedTripsData}
@@ -285,15 +298,12 @@ const Trip = () => {
     );
   };
 
+
   return (
-    <SafeAreaView
-      className="flex-1 bg-[#F9F9F9]"
-      style={{
-        flex: 1,
-        backgroundColor: "#F9F9F9",
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-      }}
-    >
+    <SafeAreaView className="flex-1 bg-[#F9F9F9]" style={{ 
+      flex: 1, 
+      backgroundColor: '#F9F9F9',
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <View className="bg-[#F9F9F9] flex-1">
         <View className="flex-row items-center justify-between mx-6">
           <Text className="text-[#1D1E20] font-extrabold text-2xl">Trips</Text>
@@ -301,7 +311,7 @@ const Trip = () => {
         </View>
 
         {/* Search Bar */}
-        <View className="mt-4 mx-6 flex-row items-center border-gray-300 border bg-white rounded-lg p-4">
+        <View className="mt-4 mx-6 mb-2 flex-row items-center border-gray-300 border bg-white rounded-lg p-4">
           <SearchIcon />
           <TextInput
             placeholder="Find Vendor"
@@ -312,37 +322,24 @@ const Trip = () => {
 
         <Tabs defaultValue="initiated">
           <TabsList>
-            <TabsTrigger value="initiated" title="Initiated Trips" />
-            <TabsTrigger value="inProgress" title="In-Progress Trips" />
-            <TabsTrigger value="delivered" title="Delivered Trips" />
-            <TabsTrigger value="closeTrips" title="Close Trip Requests" />
+            <TabsTrigger value="initiated" title="Initiated" />
+            <TabsTrigger value="inProgress" title="In-Progress" />
+            <TabsTrigger value="completed" title="Completed" />
           </TabsList>
 
-          <TabsContent value="initiated">
+          <TabsContent value="initiated" >
             {renderInitiatedContent()}
-            {/* <FlatList
-              data={initiatedTripsData}
-              renderItem={renderInititatedTripItem}
-              keyExtractor={(item) => item.id.toString()}
-              className="mt-4"
-            /> */}
           </TabsContent>
-
           <TabsContent value="inProgress">
             {renderInProgressContent()}
           </TabsContent>
-
-          <TabsContent value="delivered">
+          <TabsContent value="completed">
             {renderDeliveredContent()}
           </TabsContent>
         </Tabs>
+
+        <View className="w-full mx-6"></View>
       </View>
-      <TouchableOpacity
-        onPress={() => handlePress("/screens/admin/createTrip")}
-        className="absolute bottom-4 right-4 w-1/2 bg-[#394F91] p-4 rounded-lg items-center z-10"
-      >
-        <Text className="text-white font-bold">+ Create Trip</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };

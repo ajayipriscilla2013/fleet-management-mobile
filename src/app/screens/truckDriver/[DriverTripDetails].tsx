@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   View,
@@ -26,6 +26,10 @@ const TripDetailsScreen = () => {
   const handlePress = (path) => {
     router.push(path);
   };
+
+  const {DriverTripDetails:tripId}= useLocalSearchParams()
+  console.log("trip_ID",tripId);
+  
 
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -140,7 +144,7 @@ const TripDetailsScreen = () => {
 
             <TouchableOpacity
               className="bg-[#394F91] rounded-2xl p-4 mt-6"
-              onPress={() => handlePress("/screens/truckDriver/loadingPoint")}
+              onPress={() => handlePress(`/screens/truckDriver/confirmLoading/${tripId}`)}
             >
               <Text className="text-white text-center font-semibold">
                 Accept Trip
@@ -148,7 +152,7 @@ const TripDetailsScreen = () => {
             </TouchableOpacity>
             <TouchableOpacity
               className="bg-white border border-gray-300 rounded-2xl p-4 mt-6"
-              onPress={() => handlePress("/screens/truckDriver/getFuel")}
+              onPress={() => handlePress(`/screens/truckDriver/getFuel/${tripId}`)}
             >
               <Text className="text-black text-center font-semibold">
                 Get Fuel

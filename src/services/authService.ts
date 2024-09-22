@@ -31,7 +31,7 @@ export const logout = async () => {
   await AsyncStorage.removeItem("jwtToken");
 };
 
-type UserRole = 'customer' | 'truckDriver' | 'admin' | 'fuelAttendant';
+type UserRole = 'Customer' | 'driver' | 'admin' | 'fuelAttendant';
 
 interface User {
   id: string;
@@ -60,9 +60,9 @@ export const getUserRole = (userId: string): UserRole | null => {
 
 export const getRoleBasedRoute = (role: UserRole): string => {
   switch (role) {
-    case 'customer':
+    case 'Customer':
       return '/(customer)/Home';
-    case 'truckDriver':
+    case 'driver':
       return '/(truckDriver)/Home';
     case 'admin':
       return '/(admin)/Home';

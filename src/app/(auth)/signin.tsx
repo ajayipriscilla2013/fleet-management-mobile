@@ -70,9 +70,18 @@ const LoginPage = () => {
     try {
   
       const response =await  login(transformedBody);
+      
+      
       if (response.status === 200) {
+        const { user_role } = response.data;
+        console.log("role:",user_role);
+        const route = getRoleBasedRoute(user_role);
+        console.log("route",route);
+        
+        router.navigate(route);
             Alert.alert("Login Successful", "You have logged in successfully!");
-            router.navigate("/(admin)/Home");
+            
+            // router.navigate("/(admin)/Home");
           } else {
             Alert.alert("Login Failed", "Please check your credentials.");
           }
