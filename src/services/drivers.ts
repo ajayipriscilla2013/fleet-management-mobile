@@ -32,15 +32,16 @@ export const getCompletedTripsForDriver = async () => {
         dataname: "getInitiatedTripForDriver",
         driver_id: userId,
       });
-      if (response.data.error === "Not Found") {
-        throw new Error("No trips found");
-     }    
-      else {
+    //   if (response.data.error === "Not Found") {
+    //     throw new Error("No trips found");
+    //  }    
+    //   else {
        
-        return response.data.data
-      }
-    console.log("api response:",response.response.data);
+    //     return response.data.data
+    //   }
     
+    console.log("api response:",response.data);
+    return response.data.data
     // return response.data.data
     } catch (error) {
       console.error("Error fetching initiated trips for driver:", error);

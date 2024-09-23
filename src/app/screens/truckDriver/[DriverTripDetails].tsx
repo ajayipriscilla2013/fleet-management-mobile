@@ -19,6 +19,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import Img1 from "@/assets/images/img1.png"
 import Img2 from "@/assets/images/img2.png"
 import Img3 from "@/assets/images/img3.png"
+import { getSingleTrip } from "@/src/services/other";
+import { useQuery } from "@tanstack/react-query";
 
 const TripDetailsScreen = () => {
   const router = useRouter();
@@ -27,9 +29,14 @@ const TripDetailsScreen = () => {
     router.push(path);
   };
 
-  const {DriverTripDetails:tripId}= useLocalSearchParams()
+  const {tripId:tripId}= useLocalSearchParams()
   console.log("trip_ID",tripId);
   
+  const {data:tripInfo}= useQuery({
+    queryKey:["DriverTripInfo"],
+    queryFn:()=>getSingleTrip(tripId)
+  })
+
 
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -79,16 +86,16 @@ const TripDetailsScreen = () => {
                 <Text className="text-lg font-bold mb-2">Trip Information</Text>
               </View>
               {[
-                { label: "Trip ID", value: "TP47636726" },
+                { label: "Trip ID", value: tripInfo?.trip_id },
                 { label: "Loading Point", value: "Gwarinpa, Abuja" },
-                { label: "Offloading Point", value: "Airport Road, Abuja" },
+                { label: "Offloading Point", value: tripInfo?.delivery_location },
                 {
                   label: "Status",
-                  value: "Initiated",
+                  value: tripInfo?.status,
                   color: "text-yellow-600",
                 },
                 { label: "Start Date", value: "Sep 1, 2024" },
-                { label: "End Date", value: "Sep 1, 2024" },
+                { label: "End Date", value: tripInfo?.delivery_time },
               ].map((item, index) => (
                 <View
                   key={index}
@@ -113,7 +120,7 @@ const TripDetailsScreen = () => {
                 { label: "Filling Station", value: "Mobil Filling Station" },
                 {
                   label: "Status",
-                  value: "Initiated",
+                  value: tripInfo?.status,
                   color: "text-yellow-600",
                 },
                 { label: "Date", value: "Sep 1, 2024" },

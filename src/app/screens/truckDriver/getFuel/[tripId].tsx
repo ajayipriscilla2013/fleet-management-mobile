@@ -58,9 +58,9 @@ const GetFuelScreen = () => {
       // router.push("/screens/truckDriver/fuelConfirmation");
     },
     onError: (error) => {
-      console.error('Error submitting fuel data:', error);
-      Alert.alert("Ooops","Something happened")
-      // Show error message to user
+      const errorMessage = error.response?.data?.message || "An unknown error occurred";
+     console.error('Error submitting data:', error);
+     Alert.alert("Error", `${errorMessage}`);
     },
   });
 

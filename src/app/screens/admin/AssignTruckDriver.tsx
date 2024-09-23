@@ -222,7 +222,7 @@ import Picker from 'react-native-picker-select';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '@/src/services/api';
 
-const AssignTruckDriverScreen = () => {
+const AssignTruckDriverScreen = ({onAssignDriver}) => {
   const handlePress = (path) => {
     router.push(path);
   };
@@ -288,6 +288,7 @@ const AssignTruckDriverScreen = () => {
       console.log("Assignment successful:", response.data);
       if (response.status === 200) {
         setModalVisible(true);
+        onAssignDriver()
       } else {
         Alert.alert("Submission Failed", response.data.message || "Please check your input.");
       }

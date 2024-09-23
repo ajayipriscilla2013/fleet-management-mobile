@@ -40,13 +40,15 @@ const OffloadingPointScreen = () => {
     onSuccess: () => {
       // Handle success (e.g., show a success message, navigate to next screen)
       console.log('Offloading data submitted successfully');
-      Alert.alert("Success","Loading Trip")
+      Alert.alert("Success","OffLoading point data submitted")
       // You might want to navigate to a confirmation screen or back to the main screen
       // router.push("/screens/truckDriver/confirmationScreen");
     },
     onError: (error) => {
-      // Handle error (e.g., show an error message)
-      console.error('Error submitting offloading data:', error);
+      const errorMessage = error.response?.data?.message || "An unknown error occurred";
+    
+      console.error('Error submitting data:', error);
+      Alert.alert("Error", `${errorMessage}`);
     },
   });
 

@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   Modal,
-  Image
+  Image,
+  Alert
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -73,12 +74,15 @@ const CreateTripForm = () => {
       API.post("trip/trip.php", { ...newTrip, dataname: "createTrip" }),
     onSuccess: (data) => {
       console.log("Trip created successfully", data);
-      setModalVisible(true);
+      Alert.alert("Success", "Trip Created Succeefully")
+      setActiveTab("assignTruckDriver");
+      // setModalVisible(true);
       // Handle success (e.g., show a success message, navigate to another screen)
       // QueryClient.invalidateQueries('trips'); // Assuming you have a 'trips' query to refetch
     },
     onError: (error) => {
       console.error("Error creating trip", error);
+      Alert.alert("Ooops", "Something Happened")
       // Handle error (e.g., show an error message)
       
       // router.navigate("/screens/admin/AssignTruckDriver");
@@ -95,6 +99,19 @@ const CreateTripForm = () => {
       loading_qty: parseInt(formData.loading_qty, 10),
     };
     createTripMutation.mutate(tripData);
+  };
+
+  const handleAssignDriver = () => {
+    // Logic to assign truck driver
+    // On success, switch to the AssignVendor form
+    setActiveTab("assignVendor");
+  };
+
+  const handleAssignVendor = () => {
+    // Logic to assign vendor
+    // After this, you could redirect to another screen or show success
+    // setActiveTab("success");
+    router.navigate("/screens/admin/createTrip")
   };
 
   const handleDateChange = (event, selectedDate, dateType) => {
@@ -291,7 +308,7 @@ const CreateTripForm = () => {
       {showStartDate && (
         <DateTimePicker
           value={formData.start_date}
-          mode="datetime"
+          mode="date"
           is24Hour={true}
           display="default"
           onChange={(event, selectedDate) =>
@@ -321,7 +338,7 @@ const CreateTripForm = () => {
       {showEndDate && (
         <DateTimePicker
           value={formData.end_date}
-          mode="datetime"
+          mode="date"
           is24Hour={true}
           display="default"
           onChange={(event, selectedDate) =>
@@ -339,73 +356,26 @@ const CreateTripForm = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Success Modal */}
-      <Modal
-          animationType="fade"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={styles.centeredView} className="flex gap-4  ">
-            <View style={styles.modalView} >          
-            <View className="rounded-full flex items-center justify-center bg-[#EEF0FB] mx-auto w-[84px] h-[84px]">
-              <Image source={SuccessIcon}/>
-            </View>
-            <Text className="font-semibold text-center text-xl  text-[#394F91]">Assignment Successful 🚀</Text>
-            <Text className="text-primary">
-              You have successfully assigned a truck driver to the trip
-            </Text>
-            <TouchableOpacity
-              className="bg-[#394F91] p-4  rounded-lg mb-4"
-              onPress={() =>  setModalVisible(!modalVisible)}
-            >
-              <Text className="text-white text-center font-semibold">Continue</Text>
-            </TouchableOpacity>
-            </View>
-          </View>
-          
-        </Modal>
+      
     </>
        )
   };
 
   const renderAssignDriverToTrip = () => (
     <>
-      <AssignTruckDriverScreen />
+      <AssignTruckDriverScreen onAssignDriver={handleAssignDriver}/>
     </>
   )
 
   const renderAssignVendorToTrip = () => (
     <>
-      <AssignVendorScreen />
+      <AssignVendorScreen onAssignVendor={handleAssignVendor} />
     </>
   )
 
   return (
     <ScrollView className="flex-1">
       <View style={styles.container}>
-        {/* Step Indicator */}
-        {/* <View className="flex-row justify-between items-center mb-4">
-        <View className="items-center">
-          <View className="w-6 h-6 bg-[#394F91] rounded-full justify-center items-center">
-            <Tick />
-          </View>
-          <Text className="text-sm font-semibold mt-1 text-[#394F91]">
-            Trip Information
-          </Text>
-          <Text className="text-xs text-gray-400">Setup Trip Information</Text>
-        </View>
-        <View className="h-1 bg-gray-200 flex-1 mx-2" />
-        <View className="items-center">
-          <View className="w-6 h-6 bg-gray-200 rounded-full" />
-          <Text className="text-sm font-semibold mt-1 text-gray-400">
-            Assign Truck/Drivers
-          </Text>
-          <Text className="text-xs text-gray-400">Setup Fuel Information</Text>
-        </View>
-      </View> */}
 
         {/* Tab Navigation */}
         <View className="flex-row justify-between items-center mb-4">
@@ -491,6 +461,36 @@ const CreateTripForm = () => {
         {activeTab === "tripInfo" && renderTripInformation()}
         {activeTab === "assignTruckDriver" && renderAssignDriverToTrip()}
         {activeTab === "assignVendor" &&  renderAssignVendorToTrip()}
+        {/* Success Screen */}
+      {activeTab === "success" && (
+      <Modal
+      animationType="fade"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => {
+        setModalVisible(!modalVisible);
+      }}
+    >
+      <View style={styles.centeredView} className="flex gap-4  ">
+        <View style={styles.modalView} >          
+        <View className="rounded-full flex items-center justify-center bg-[#EEF0FB] mx-auto w-[84px] h-[84px]">
+          <Image source={SuccessIcon}/>
+        </View>
+        <Text className="font-semibold text-center text-xl  text-[#394F91]">Assignment Successful 🚀</Text>
+        <Text className="text-primary">
+        Trip and assignments were successful!
+        </Text>
+        <TouchableOpacity
+          className="bg-[#394F91] p-4  rounded-lg mb-4"
+          onPress={() =>  setModalVisible(!modalVisible)}
+        >
+          <Text className="text-white text-center font-semibold">Continue</Text>
+        </TouchableOpacity>
+        </View>
+      </View>
+      
+    </Modal>
+      )}
       </View>
     </ScrollView>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
@@ -42,13 +42,16 @@ const LoadingPointScreen = () => {
     mutationFn: submitLoadingData,
     onSuccess: () => {
       console.log("loading point data submitted");
-      
+      Alert.alert("Success","Loading point data submitted")
       // Handle success (e.g., show a success message, navigate to next screen)
       // router.push("/screens/truckDriver/offloadingPoint");
     },
     onError: (error) => {
-      // Handle error (e.g., show an error message)
-      console.error('Error submitting data:', error);
+     // Check if the error response contains a message
+     const errorMessage = error.response?.data?.message || "An unknown error occurred";
+    
+     console.error('Error submitting data:', error);
+     Alert.alert("Error", `${errorMessage}`);
     },
   });
 
@@ -93,7 +96,7 @@ const LoadingPointScreen = () => {
         </View>
       ))}
 
-      <Text className="text-gray-600 mb-[10px]">Take a Snap of Waybill</Text>
+      <Text className="text-gray-600 mb-[10px]">Take a Snap of Loaded Truck</Text>
 
       <TouchableOpacity className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mt-4" onPress={handleImagePick}>
         <View className='flex flex-col items-center'>

@@ -222,11 +222,13 @@ import Picker from 'react-native-picker-select';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '@/src/services/api';
 
-const AssignVendorScreen = () => {
+const AssignVendorScreen = ({onAssignVendor}) => {
   const handlePress = (path) => {
     router.push(path);
   };
 
+  
+  
   const [formData, setFormData] = useState({
     vendor_id: "",
     trip_id: "",
@@ -292,15 +294,23 @@ const AssignVendorScreen = () => {
             "Assignment Successful",
             "The Vendor has been successfully assigned to the trip!"
           );
+          router.push("/(admin)/Trip")
+          
       }
     } catch (error) {
-      console.error("Error assigning truck/driver:", error);
+      console.error("Error assigning Vendor:", error);
       Alert.alert(
         "Assignment UnSuccessful",
-        "The Vendor wasn't successfully assigned to the trip!"
+        `Error assigning Vendor! ${error?.message}`
       );
     }
   };
+
+  const handleTest =()=>{
+    console.log("being clicked");
+    
+    
+  }
 
   return (
    <>
@@ -335,7 +345,7 @@ const AssignVendorScreen = () => {
          <Text className="text-gray-600 mb-[10px]">Description</Text>
       <TextInput
         placeholder="Provide a Description"
-        keyboardType="numeric"
+        keyboardType="default"
         value={formData.role}
         onChangeText={(text) => setFormData({ ...formData, role: text })}
         className="shadow-[0px 1px 2px rgba(16,24,40,0.05)] border bg-white  border-[#C4CCF0] rounded-md p-2 h-[60px]"
