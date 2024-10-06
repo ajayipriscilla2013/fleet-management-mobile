@@ -12,12 +12,12 @@ const TruckDriverInfo = () => {
     queryKey:["driver",driverId],
     queryFn:()=>getDriver(driverId)
   })
-
+  const fallbackDriverImage = "https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=800";
   return (
     <View className="flex-1 p-6">
       <View className="bg-white rounded-lg p-3">
         <Image
-          source={Avatar1}
+          source={{uri:driverData?.image || fallbackDriverImage}}
           className="w-24 h-24 rounded-full mx-auto mb-4 items-center"
         />
         {[

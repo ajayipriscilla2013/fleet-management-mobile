@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "./api";
 
 export const getTrucks = async () => {
@@ -142,6 +143,46 @@ export const getCompletedTrips = async () => {
   }
 };
 
+export const getTripsWithClosingRequest = async () => {
+  try {
+    const response = await API.post("trip/trip.php", {
+      dataname: "getTripsWithClosingRequest",
+    });
+  //   if (response.data.error === "Not Found") {
+  //     throw new Error("No trips found");
+  //  }    
+  //   else {
+     
+  //     return response.data.data
+  //   }
+  console.log(response.data.data);
+  
+  return response.data.data
+  
+  } catch (error) {
+    console.error("Error fetching trips with closing request:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+};
+
+export const closeTrip = async (tripId) => {
+  const user_id= await AsyncStorage.getItem("user_id")
+  try {
+    const response = await API.post("trip/trip.php", {
+      dataname: "closeTrip",
+      trip_id: tripId,
+      user_id
+    });
+  console.log(response.data.data);
+  
+  return response.data.data
+  
+  } catch (error) {
+    console.error("Error fetching trips with closing request:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+};
+
 export const getSingleTrip = async (tripId) => {
   try {
     const response = await API.post("trip/trip.php", {
@@ -172,16 +213,16 @@ export const getLoadingPoint= async()=>{
   }
 }
 
-export const getOffLoadingPoint= async()=>{
-  try {
-    const response = await API.post("",{
-      dataname:""
-    })
-  } catch (error) {
-    console.log(error);
+// export const getOffLoadingPoint= async()=>{
+//   try {
+//     const response = await API.post("",{
+//       dataname:""
+//     })
+//   } catch (error) {
+//     console.log(error);
     
-  }
-}
+//   }
+// }
 
 export const getProductType= async()=>{
   try {
@@ -209,4 +250,32 @@ export const getCustomers= async()=>{
 }
 
 
+export const getFuelAttendantTripsToBeFueled= async()=>{
+ const vendor_agent_id= await AsyncStorage.getItem("user_id")
+  try {
+    const response = await API.post("trip/trip.php",{
+      dataname:"getTripsToBeFueledByVendor",
+      vendor_agent_id
+    })
+    // console.log("tripsToBEfUELDED",response.data.data);
+    
+    return response.data.data
+  } catch (error) {
+    
+  }
+}
 
+export const getFuelAttendantTripsFueled= async()=>{
+  const vendor_agent_id= await AsyncStorage.getItem("user_id")
+  try {
+    const response = await API.post("trip/trip.php",{
+      dataname:"getTripsFueledByVendor",
+      vendor_agent_id
+    })
+    // console.log("tripsfUELDED",response.data.data);
+    
+    return response.data.data
+  } catch (error) {
+    
+  }
+}

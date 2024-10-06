@@ -9,6 +9,7 @@ import {
   Pressable,
   Image,
   FlatList,
+  Alert,
 } from "react-native";
 import LocationIcon from "@/assets/svgs/location3.svg";
 import OriginIcon from "@/assets/svgs/record-circle.svg";
@@ -19,8 +20,12 @@ import { Badge } from "@/components/Badge";
 import Img1 from "@/assets/images/img1.png"
 import Img2 from "@/assets/images/img2.png"
 import Img3 from "@/assets/images/img3.png"
-import { useQuery } from "@tanstack/react-query";
-import { getSingleTrip } from "@/src/services/other";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { closeTrip, getSingleTrip } from "@/src/services/other";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
 
 const TripDetailsScreen = () => {
   const router = useRouter();
@@ -33,9 +38,26 @@ const TripDetailsScreen = () => {
   };
 
   const {data:tripInfo}= useQuery({
-    queryKey:["tripInfo"],
+    queryKey:["AdminTripInfo"],
     queryFn:()=>getSingleTrip(tripId)
   })
+
+  const mutation = useMutation({
+    mutationFn:closeTrip,
+    onSuccess:()=>{
+      console.log("Trip Closed");
+      Alert.alert("Success","Trip Close Request Successful")
+    },
+    onError:(error)=>{
+      const errorMessage = error.response?.data?.message || "An unknown error occurred";
+      console.error('Error submitting data:', error);
+      Alert.alert("Error", `${errorMessage}`);
+    }
+  })
+
+  const handleSubmit = (trip_id)=>{
+    mutation.mutate(trip_id)
+  }
 
 
   return (
@@ -82,13 +104,14 @@ const TripDetailsScreen = () => {
               { label: "Offloading Point", value: "Airport Road, Abuja" },
               {
                 label: "Status",
-                value: `${status}`,
+                value: `${tripInfo?.status}`,
                 color: "text-yellow-600",
               },
-              { label: "Start Date", value: tripInfo?.start_date || "null value" },
-              { label: "End Date", value: tripInfo?.end_date || "null value"  },
-              { label: "Customer Name", value: tripInfo?.customer_name || "null value"  },
-              { label: "Driver Name", value: tripInfo?.truck_driver_name || "null value"  },
+              // {dayjs(formData.start_date).format("LL")}
+              { label: "Start Date", value: dayjs(tripInfo?.start_date).format("LL") || "null value" },
+              { label: "End Date", value: dayjs(tripInfo?.end_date).format("LL") || "null value"  },
+              { label: "Customer Name", value: tripInfo?.customer_name   },
+              { label: "Driver Name", value: tripInfo?.truck_driver_name   },
             ].map((item, index) => (
               <View
                 key={index}
@@ -105,6 +128,20 @@ const TripDetailsScreen = () => {
               </View>
             ))}
           </View>
+
+          {tripInfo?.status==="in_progress" ?(
+              <TouchableOpacity
+              className="bg-[#394F91] rounded-2xl p-4 mt-6"
+              onPress={() => {
+                handleSubmit(tripId)
+                // handlePress(`/screens/truckDriver/confirmLoading/${tripId}`)
+               } }
+            >
+              <Text className="text-white text-center font-semibold">
+                Close Trip
+              </Text>
+            </TouchableOpacity>
+          ) :null}
 
         
         </TabsContent>

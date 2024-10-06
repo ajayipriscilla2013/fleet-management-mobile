@@ -7,6 +7,9 @@ import { useLocalSearchParams } from "expo-router";
 const FillingStation = () => {
   const { id  } = useLocalSearchParams();
   console.log(id);
+
+  const fallbackVendorImage = "https://images.pexels.com/photos/18335589/pexels-photo-18335589/free-photo-of-view-of-a-petrol-station-at-sunset.jpeg?auto=compress&cs=tinysrgb&w=800";
+
   
   const { data: vendorData, isLoading, isError } = useQuery({
    queryKey: ["vendor", id], 
@@ -17,7 +20,7 @@ const FillingStation = () => {
       <View className="flex-1 p-6">
        
         <Image
-          source={FuelStation}
+          source={{uri:vendorData?.image || fallbackVendorImage}}
           className="w-full h-48 mb-4 rounded-lg"
         />
 

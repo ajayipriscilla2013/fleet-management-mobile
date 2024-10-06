@@ -56,12 +56,13 @@ const Trucks = () => {
     queryKey:["trucks"],
     queryFn:getTrucks
   })
+  const fallbackTruckImage = "https://images.pexels.com/photos/188679/pexels-photo-188679.jpeg?auto=compress&cs=tinysrgb&w=800";
 
   const renderItem = ({ item }) => (
     <View className="p-2 w-[50%]">
       <Pressable onPress={() => handlePress(`/trucks/${item.id}`)}>
         <Image
-          source={TruckImg}
+          source={{uri:item.image || fallbackTruckImage}}
           className="w-full h-48 rounded-lg bg-slate-200"
         />
         <Text className="mt-2 text-lg font-bold">{item.model}</Text>

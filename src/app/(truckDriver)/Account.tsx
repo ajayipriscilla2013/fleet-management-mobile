@@ -26,6 +26,7 @@ import ArrowIcon from "@/assets/svgs/arrow-right2.svg"
 import ArrowLogoutIcon from "@/assets/svgs/arrow-red.svg"
 import Avatar2 from "@/assets/images/avatar2.png"
 import Bg from "@/assets/images/image3.png"
+import { useAuth } from "@/src/context/AuthContext";
 
 
 
@@ -33,6 +34,7 @@ import Bg from "@/assets/images/image3.png"
 
 
 const Account = () => {
+  const { user:userData,  } = useAuth();
   const router = useRouter();
   const handlePress = (path) => {
     router.push(path);
@@ -40,84 +42,7 @@ const Account = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user_id = await AsyncStorage.getItem("user_id");
-
-        const response = await API.post("auth/auth.php", {
-          user_id,
-          dataname: "getUser",
-        });
-
-        setUser(response.data.user);
-      } catch (error) {
-        console.error("API request error", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
   return (
-    // <SafeAreaView className="flex-1 bg-white">
-    //   <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-    //     <View className="flex items-center justify-center mt-8">
-    //       {
-    //         <View className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
-    //           <Image
-    //             source={{
-    //               uri: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541",
-    //             }}
-    //           />
-    //         </View>
-    //       }
-    //     </View>
-    //     <View className="mt-4 px-6">
-    //       <Text className="text-2xl font-semibold text-center">
-    //         {user.first_name} {user.last_name}
-    //       </Text>
-    //       <Text className="text-sm text-center text-gray-500">
-    //         {user.username}
-    //       </Text>
-    //     </View>
-    //     <View className="mt-6 px-6">
-    //       <Text className="text-lg font-semibold">Contact Information</Text>
-    //       <Text className="text-sm text-gray-500 mt-2">
-    //         Email: {user.email}
-    //       </Text>
-    //       <Text className="text-sm text-gray-500 mt-1">
-    //         Phone: {user.phone}
-    //       </Text>
-    //       <Text className="text-sm text-gray-500 mt-1">
-    //         Address: {user.address}
-    //       </Text>
-    //       <Text className="text-sm text-gray-500 mt-1">
-    //         State: {user.state}
-    //       </Text>
-    //       <Text className="text-sm text-gray-500 mt-1">
-    //         Country: {user.country}
-    //       </Text>
-    //     </View>
-    //     <View className="mt-6 px-6">
-    //       <Text className="text-lg font-semibold">Account Information</Text>
-    //       <Text className="text-sm text-gray-500 mt-2">
-    //         User ID: {user.user_id}
-    //       </Text>
-    //       <Text className="text-sm text-gray-500 mt-1">
-    //         Last Login: {user.last_login}
-    //       </Text>
-    //       <Text className="text-sm text-gray-500 mt-1">
-    //         Account Status: {user.is_active ? "Active" : "Inactive"}
-    //       </Text>
-    //     </View>
-    //     <View className="mt-6 px-6">
-    //       <Text className="text-sm text-gray-400">
-    //         Account created on: {user.created_at}
-    //       </Text>
-    //     </View>
-    //   </ScrollView>
-    // </SafeAreaView>
 
     <View className="flex-1 bg-[#394F91] ">
       <ImageBackground source={Bg} resizeMode="cover">
@@ -128,8 +53,8 @@ const Account = () => {
           source={Avatar2}
           className="w-24 h-24 rounded-full"
         />
-        <Text className="mt-2 text-xl font-semibold text-white">Uwurume Peter</Text>
-        <Text className="text-white">shipperpeter@gmail.com</Text>
+        <Text className="mt-2 text-xl font-semibold text-white">{userData?.first_name +" " + userData?.last_name}</Text>
+        <Text className="text-white">{userData?.email}</Text>
         <TouchableOpacity className="flex-row  items-center gap-1 mt-2 px-4 py-2 bg-white rounded-full">
           <Text className="text-[#394F91]">Edit Profile</Text>
           <EditIcon/>
@@ -159,10 +84,9 @@ const Account = () => {
           <ArrowIcon/>
         </TouchableOpacity>
       ))}
-      <TouchableOpacity className="flex-row items-center py-4 border border-[#F6F6F6] rounded-lg mb-2 px-4" 
-     
-       onPress={() =>
-         handlePress("/(auth)/signin")}
+      <TouchableOpacity className="flex-row items-center py-4 border border-[#F6F6F6] rounded-lg mb-2 px-4"
+      onPress={() =>
+        handlePress("/(auth)/signin")}
       >
       <View className="rounded-full bg-[#FFEBE5] p-2 ">
         <LogoutIcon className="w-6 h-6 text-red-600" />

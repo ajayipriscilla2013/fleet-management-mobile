@@ -2,11 +2,14 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
+
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || "http://fmabackend.charissatics.com/api/",
 });
 
-export const login = async (body) => {
+
+
+export const loginUser = async (body) => {
   try {
     // Attempt to login
     const response = await API.post("auth/auth.php", body);
@@ -24,7 +27,7 @@ export const login = async (body) => {
       await AsyncStorage.setItem("jwtToken", token);
       await AsyncStorage.setItem("user_id", user_id);
     }
-
+// getUser(user_id)
     return response
   } catch (error) {
     // Determine error type and provide feedback

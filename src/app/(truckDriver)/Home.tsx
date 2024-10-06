@@ -31,13 +31,20 @@ import Headphone from "@/assets/svgs/music.svg";
 
 import { useQuery } from '@tanstack/react-query';
 import { getDrivers, getProductType, getTrucks, getVendors } from "@/src/services/other";
+import { useAuth } from "@/src/context/AuthContext";
 
 const Home = () => {
+  const { user,  } = useAuth();
   const router = useRouter();
 
   const handlePress = (path) => {
     router.push(path);
   };
+
+  const fallbackProductImage = "https://cdn.pixabay.com/photo/2022/04/24/16/01/beach-7153932_1280.jpg";
+const fallbackTruckImage = "https://images.pexels.com/photos/188679/pexels-photo-188679.jpeg?auto=compress&cs=tinysrgb&w=800";
+const fallbackVendorImage = "https://images.pexels.com/photos/18335589/pexels-photo-18335589/free-photo-of-view-of-a-petrol-station-at-sunset.jpeg?auto=compress&cs=tinysrgb&w=800";
+
 
   const {
     data: trucksData,
@@ -69,7 +76,7 @@ const Home = () => {
   const renderVendorItem = ({ item }) => (
     <View className="mr-4">
       <Image
-        source={{ uri: item.image }}
+        source={{ uri: item.image|| fallbackVendorImage }}
         className="h-[210px] w-[298px] rounded-lg bg-slate-200"
       />
       <Text className="mt-2 text-lg font-bold mb-1">{item.name}</Text>
@@ -95,7 +102,7 @@ const Home = () => {
   const renderProductItem = ({ item }) => (
     <View className="items-center mr-4">
       <Image
-        source={{ uri: item.image }}
+        source={{ uri: item.image || fallbackProductImage}}
         className="h-[51px] w-[51px] rounded-full bg-slate-400"
       />
       <Text className="mt-2 text-sm font-bold">{item.name}</Text>
@@ -116,7 +123,7 @@ const Home = () => {
   const renderTruckItem = ({ item }) => (
     <View className="mr-4">
       <Image
-        source={item.image}
+        source={{uri:item.image || fallbackTruckImage}}
         className="h-[210px] w-[298px] rounded-lg bg-slate-200"
       />
       <Text className="mt-2 text-lg text-[#1D1E20] font-bold">{item.plate_number}</Text>
@@ -143,7 +150,7 @@ const Home = () => {
             <View className="mt-28 mx-6">
               <Text className="text-2xl w-2/3 text-white font-semibold">
                 Welcome,{" "}
-                <Text className="text-white font-bold text-4xl">Peter 😊</Text>
+                <Text className="text-white font-bold text-4xl">{user?.first_name} 😊</Text>
               </Text>
             </View>
 

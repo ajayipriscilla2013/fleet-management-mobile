@@ -1,6 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 import { Button, TouchableOpacity } from "react-native";
 import Back from "@/assets/svgs/Back.svg"
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Layout = () => {
   const router = useRouter();
@@ -15,7 +16,8 @@ const Layout = () => {
           headerBackTitle: "Back",
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
-            <Back/>
+            {/* <Back/> */}
+            <Ionicons name="chevron-back-circle-outline" size={24} color="black" />
           </TouchableOpacity>
           ),
         }}
@@ -28,7 +30,8 @@ const Layout = () => {
           headerBackTitle: "Back",
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
-            <Back/>
+            {/* <Back/> */}
+            <Ionicons name="chevron-back-circle-outline" size={24} color="black" />
           </TouchableOpacity>
           ),
         }}
@@ -41,7 +44,8 @@ const Layout = () => {
           headerBackTitle: "Back",
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
-            <Back/>
+            {/* <Back/> */}
+            <Ionicons name="chevron-back-circle-outline" size={24} color="black" />
           </TouchableOpacity>
           ),
         }}
@@ -54,7 +58,8 @@ const Layout = () => {
           headerBackTitle: "Back",
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
-            <Back/>
+            {/* <Back/> */}
+            <Ionicons name="chevron-back-circle-outline" size={24} color="black" />
           </TouchableOpacity>
           ),
         }}

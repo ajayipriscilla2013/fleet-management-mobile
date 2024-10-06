@@ -1,7 +1,10 @@
 import { Image, Text, View } from "react-native";
 import FuelStation from "@/assets/images/fuelStation.png"
+import { useLocalSearchParams } from "expo-router";
 
 const Notification = () => {
+  const { notification } = useLocalSearchParams();
+  console.log("notification_ID ", notification);
     return (
       <View className="flex-1 p-6">
 

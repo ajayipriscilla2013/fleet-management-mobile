@@ -23,6 +23,7 @@ const Drivers = () => {
     queryFn:getProductType
   })
   
+  const fallbackProductImage = "https://cdn.pixabay.com/photo/2022/04/24/16/01/beach-7153932_1280.jpg";
 
   
   const renderProduct = ({ item }: any) => (
@@ -34,7 +35,7 @@ const Drivers = () => {
       <Avatar className="mr-5 h-[51px] w-[51px]">
         <AvatarImage
           source={{
-            uri: "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+            uri: item.image || fallbackProductImage ,
           }}
         />
         <AvatarFallback>CG</AvatarFallback>
@@ -54,7 +55,7 @@ const Drivers = () => {
           </View>
         </View>
       </View>
-      <ArrowRight/>
+      {/* <ArrowRight/> */}
     </View>
     </Pressable>
   );

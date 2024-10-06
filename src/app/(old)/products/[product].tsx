@@ -6,6 +6,8 @@ import { getDriver } from "@/src/services/other";
 
 const ProductInfo = () => {
 
+  const fallbackProductImage = "https://cdn.pixabay.com/photo/2022/04/24/16/01/beach-7153932_1280.jpg";
+
   const{product:productId} = useLocalSearchParams()
   console.log();
   
@@ -19,7 +21,7 @@ const ProductInfo = () => {
     <View className="flex-1 p-6">
       <View className="bg-white rounded-lg p-3">
         <Image
-          source={Avatar1}
+          source={{uri:productsData?.image || fallbackProductImage}}
           className="w-24 h-24 rounded-full mx-auto mb-4 items-center"
         />
         {[

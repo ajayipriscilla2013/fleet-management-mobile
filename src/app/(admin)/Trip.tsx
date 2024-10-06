@@ -4,6 +4,7 @@ import {
   FlatList,
   Platform,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   Text,
   TextInput,
@@ -23,6 +24,7 @@ import {
   getCompletedTrips,
   getInitiatedTrips,
   getInProgressTrips,
+  getTripsWithClosingRequest,
 } from "@/src/services/other";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 
@@ -60,6 +62,16 @@ const Trip = () => {
   } = useQuery({
     queryKey: ["deliveredTrips"],
     queryFn: getCompletedTrips,
+  });
+
+  const {
+    data: TripsRequestedToBeClosedData = [],
+    error: TripsRequestedToBeClosedError,
+    isError: TripsRequestedToBeClosedisError,
+    isLoading: TripsRequestedToBeClosedLoading,
+  } = useQuery({
+    queryKey: ["TripsRequestedToBeClosed"],
+    queryFn: getTripsWithClosingRequest,
   });
 
   const renderInititatedTripItem = ({ item }) => (
@@ -197,7 +209,7 @@ const Trip = () => {
     if (inProgressTripsData.length === 0) {
       return (
         <View className="flex items-center justify-center mt-10">
-           <EmptyScreen />
+          <EmptyScreen />
           <Text className="text-lg text-gray-500">
             No in-progress trips found.
           </Text>
@@ -239,7 +251,7 @@ const Trip = () => {
     if (deliveredTripsData.length === 0) {
       return (
         <View className="flex items-center justify-center mt-10">
-          <EmptyScreen/>
+          <EmptyScreen />
           <Text className="text-lg text-gray-500">
             No Delivered trips found.
           </Text>
@@ -285,6 +297,92 @@ const Trip = () => {
     );
   };
 
+  const renderTripClosingContent = () => {
+    if (TripsRequestedToBeClosedLoading) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
+          <ActivityIndicator />
+        </View>
+      );
+    }
+
+    if (TripsRequestedToBeClosedError) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
+          <Text className="text-lg text-red-500">
+            Error: {TripsRequestedToBeClosedError.message}
+          </Text>
+        </View>
+      );
+    }
+
+    if (TripsRequestedToBeClosedData.length === 0) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
+          <Text className="text-lg text-gray-500">
+            No trips requestes to be closed.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={TripsRequestedToBeClosedData}
+        renderItem={renderTripClosingItem}
+        keyExtractor={(item) => item.trip_id.toString()}
+        className="mt-4"
+      />
+    );
+  };
+
+  const renderTripClosingItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() =>
+        handlePress(
+          `/screens/admin/AdminTripDetailsScreen?status=inprogress&tripId=${item.trip_id}`
+        )
+      }
+    >
+      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-semibold text-base text-[#1D1E20]">
+            {item.trip_id}
+          </Text>
+          <Badge label="ToBeClosed" variant="delivered" />
+        </View>
+
+        <View className="flex flex-row items-end justify-between">
+          <View>
+            <View className="flex-row items-center gap-1">
+              <LocationIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {item.customer_name}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <CalendarIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {item.truck_driver_name}
+              </Text>
+            </View>
+          </View>
+          <ArrowIcon />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const tabs = [
+    { value: "initiated", title: "Initiated Trips" },
+    { value: "inProgress", title: "In-Progress Trips" },
+    { value: "delivered", title: "Delivered Trips" },
+    { value: "closeTrips", title: "Close Trip Requests" },
+  ];
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#F9F9F9]"
@@ -311,21 +409,29 @@ const Trip = () => {
         </View>
 
         <Tabs defaultValue="initiated">
-          <TabsList>
-            <TabsTrigger value="initiated" title="Initiated Trips" />
+          <TabsList className=" ">
+            <FlatList
+              data={tabs}
+              horizontal={true}
+              keyExtractor={(item) => item.value}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <TabsTrigger value={item.value} title={item.title} />
+              )}
+              contentContainerStyle={{
+                flexGrow: 1,
+                justifyContent: "space-between",
+                gap:8
+              }}
+            />
+            {/* <TabsTrigger  value="initiated" title="Initiated Trips" />
             <TabsTrigger value="inProgress" title="In-Progress Trips" />
             <TabsTrigger value="delivered" title="Delivered Trips" />
-            <TabsTrigger value="closeTrips" title="Close Trip Requests" />
+            <TabsTrigger value="closeTrips" title="Close Trip Requests" /> */}
           </TabsList>
 
           <TabsContent value="initiated">
             {renderInitiatedContent()}
-            {/* <FlatList
-              data={initiatedTripsData}
-              renderItem={renderInititatedTripItem}
-              keyExtractor={(item) => item.id.toString()}
-              className="mt-4"
-            /> */}
           </TabsContent>
 
           <TabsContent value="inProgress">
@@ -334,6 +440,10 @@ const Trip = () => {
 
           <TabsContent value="delivered">
             {renderDeliveredContent()}
+          </TabsContent>
+
+          <TabsContent value="closeTrips">
+            {renderTripClosingContent()}
           </TabsContent>
         </Tabs>
       </View>

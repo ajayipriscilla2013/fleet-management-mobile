@@ -8,6 +8,8 @@ import {
   TextInput,
   Platform,
   StatusBar,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
@@ -20,6 +22,9 @@ import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
 import { Badge } from "@/components/Badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
+import { useQuery } from "@tanstack/react-query";
+import EmptyScreen from "@/assets/svgs/empty.svg";
+import { getFuelAttendantTripsFueled, getFuelAttendantTripsToBeFueled } from "@/src/services/other";
 
 const Trip = () => {
   const router = useRouter();
@@ -27,6 +32,166 @@ const Trip = () => {
   const handlePress = (path) => {
     router.push(path);
   };
+
+  const {data:toBeFueledData=[], isLoading:isToBeFueledProgressLoading, error:toBeFueledError}= useQuery({
+    queryKey:["getTripsToBeFueledByVendor"],
+    queryFn:getFuelAttendantTripsToBeFueled
+  })
+
+  const {data:fueledData=[], isLoading:fueledProgressLoading, error:fueledError}= useQuery({
+    queryKey:["getTripsFueledByVendor"],
+    queryFn:getFuelAttendantTripsFueled
+  })
+
+  const renderToBeFueledTripsItem=({item})=>(
+    <TouchableOpacity
+              onPress={() =>
+                handlePress(`/screens/fuelAttendant/${item.trip_id}`)
+              }
+            >
+          <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-semibold text-base text-[#1D1E20]">
+                    {item.trip_id}
+                  </Text>
+                  <Badge label="To be Fueled" variant="initiated" />
+                </View>
+
+                <View className="flex flex-row items-end justify-between">
+                  <View>
+                    <View className="flex-row items-center gap-1">
+                      <LocationIcon />
+                      <Text className="text-xs text-[#A5A6AB]">
+                        {item.vendor_address}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-1">
+                      <CalendarIcon />
+                      <Text className="text-xs text-[#A5A6AB]">
+                        {item.vendor_name}
+                      </Text>
+                    </View>
+                  </View>
+                  <ArrowIcon />
+                </View>
+              </View>
+</TouchableOpacity>
+  )
+
+  const renderToBeFueledTripsContent=()=>{
+    if(isToBeFueledProgressLoading){
+      <View className="flex items-center justify-center mt-10">
+          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
+          <ActivityIndicator />
+        </View>
+    }
+
+    if (toBeFueledError) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
+          <Text className="text-lg text-red-500">
+            Error: {toBeFueledError.message}
+          </Text>
+        </View>
+      );
+    }
+
+
+    if(toBeFueledData.length === 0){
+      return(
+        <View className="flex items-center justify-center mt-10">
+           <EmptyScreen />
+          <Text className="text-lg text-gray-500">
+            No trips to be fueled at this time.
+          </Text>
+        </View>
+      )
+    }
+
+    return (<FlatList  data={toBeFueledData}
+    renderItem={renderToBeFueledTripsItem}
+    keyExtractor={(item) => item.trip_id.toString()}
+    className="mt-4" />)
+  }
+
+  const renderTripsFeuledIem=({item})=>(
+    <TouchableOpacity
+              onPress={() =>
+                handlePress(`/screens/fuelAttendant/${item.trip_id}`)
+              }
+            >
+          <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-semibold text-base text-[#1D1E20]">
+                    {item.trip_id}
+                  </Text>
+                  <Badge label="Fueled" variant="initiated" />
+                </View>
+
+                <View className="flex flex-row items-end justify-between">
+                  <View>
+                    <View className="flex-row items-center gap-1">
+                      <LocationIcon />
+                      <Text className="text-xs text-[#A5A6AB]">
+                        {item.vendor_address}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-1">
+                      <CalendarIcon />
+                      <Text className="text-xs text-[#A5A6AB]">
+                        {item.vendor_name}
+                      </Text>
+                    </View>
+                  </View>
+                  <ArrowIcon />
+                </View>
+              </View>
+</TouchableOpacity>
+  )
+
+  const renderTripsFeuledContent=()=>{
+      if(fueledProgressLoading){
+        return (
+          <View className="flex items-center justify-center mt-10">
+            {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
+            <ActivityIndicator />
+          </View>
+        );
+      }
+
+      if(fueledError){
+        return (
+          <View className="flex items-center justify-center mt-10">
+            <EmptyScreen />
+            <Text className="text-lg text-red-500">
+              Error: {fueledError.message}
+            </Text>
+          </View>
+        );
+      }
+
+      if (fueledData.length === 0) {
+        return (
+          <View className="flex items-center justify-center mt-10">
+             <EmptyScreen />
+            <Text className="text-lg text-gray-500">
+              No trips found.
+            </Text>
+          </View>
+        );
+  }
+
+  return (
+    <FlatList
+        data={fueledData}
+        renderItem={renderTripsFeuledIem}
+        keyExtractor={(item) => item.trip_id.toString()}
+        className="mt-4"
+      />
+  )
+}
+
   return (
     <SafeAreaView className="flex-1 bg-[#F9F9F9]" style={{ 
       flex: 1, 
@@ -57,68 +222,13 @@ const Trip = () => {
           </TabsList>
 
           <TabsContent value="toBeFueled">
-          <TouchableOpacity
-              onPress={() =>
-                handlePress("/screens/fuelAttendant/tripDetails")
-              }
-            >
-          <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
-                <View className="flex-row items-center justify-between">
-                  <Text className="font-semibold text-base text-[#1D1E20]">
-                    1 Ton of Sand
-                  </Text>
-                  <Badge label="To be Fueled" variant="initiated" />
-                </View>
-
-                <View className="flex flex-row items-end justify-between">
-                  <View>
-                    <View className="flex-row items-center gap-1">
-                      <LocationIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        Airport Road, Abuja.
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1">
-                      <CalendarIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        Created on Jan 16, 2023 1:15pm
-                      </Text>
-                    </View>
-                  </View>
-                  <ArrowIcon />
-                </View>
-              </View>
-</TouchableOpacity>
+            {renderToBeFueledTripsContent()}
+           
               
           </TabsContent>
 
           <TabsContent value="fueled">
-          <View className="flex h-[90px] mx-3 gap-2 rounded-lg mb-2 py-[13px] px-[18px] bg-white">
-                <View className="flex-row items-center justify-between">
-                  <Text className="font-semibold text-base text-[#1D1E20]">
-                    1 Ton of Sand
-                  </Text>
-                  <Badge label="Fueled" variant="delivered" />
-                </View>
-
-                <View className="flex flex-row items-end justify-between">
-                  <View>
-                    <View className="flex-row items-center gap-1">
-                      <LocationIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        Airport Road, Abuja.
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1">
-                      <CalendarIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        Created on Jan 16, 2023 1:15pm
-                      </Text>
-                    </View>
-                  </View>
-                  <ArrowIcon />
-                </View>
-              </View>
+          {renderTripsFeuledContent()}
           </TabsContent>
 
           </Tabs>

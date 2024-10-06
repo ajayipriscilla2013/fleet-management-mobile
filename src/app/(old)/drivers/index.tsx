@@ -22,7 +22,7 @@ const Drivers = () => {
     queryKey:['drivers'],
     queryFn:getDrivers
   })
-  
+  const fallbackDriverImage = "https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=800";
 
   
   const renderDrivers = ({ item }: any) => (
@@ -31,7 +31,7 @@ const Drivers = () => {
       <Avatar className="mr-5 h-[51px] w-[51px]">
         <AvatarImage
           source={{
-            uri: "https://pbs.twimg.com/profile_images/1745949238519803904/ZHwM5B07_400x400.jpg",
+            uri: item.image || fallbackDriverImage,
           }}
         />
         <AvatarFallback>CG</AvatarFallback>

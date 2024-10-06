@@ -6,14 +6,25 @@ import * as ImagePicker from 'expo-image-picker';
 import Camera from "@/assets/svgs/Camera.svg";
 import API from '@/src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'YOUR_API_ENDPOINT_HERE'; // Replace with your actual API endpoint
+import { z } from 'zod'; // Import Zod
 
 const LoadingPointScreen = () => {
-  const {tripId}= useLocalSearchParams()
-  console.log("trip_ID from confirmLoading",tripId);
-
+  const { tripId } = useLocalSearchParams();
   const router = useRouter();
+
+  console.log("truckdriver TripID", tripId);
+  
+
+  const formSchema = z.object({
+    loading_qty: z.string().min(1, "Tonnage loaded is required"),
+    odometer_reading: z.string().min(1, "Odometer reading is required"),
+    remarks: z.string().min(1, "Provide a remark"),
+    truck_picture: z.string().min(1, "Truck picture is required"),
+    dataname: z.string().default("driverLoadingPoint"),
+  });
+
+  const [focusedField, setFocusedField] = useState(null);
+
   const [formData, setFormData] = useState({
     trip_id: tripId,
     loading_qty: '',
@@ -21,37 +32,31 @@ const LoadingPointScreen = () => {
     odometer_reading: '',
     remarks: '',
     dataname: 'driverLoadingPoint',
-
   });
+  
   const [image, setImage] = useState(null);
+  const [errors, setErrors] = useState({}); // To hold form errors
 
   const submitLoadingData = async (data) => {
-    const userId = await AsyncStorage.getItem("user_id")
-    const response = await API.post("trip/trip.php",
-       {
-        dataname: "driverLoadingPoint",
-        driver_id:userId,
-         ...data
-
-       }
-      );
+    const userId = await AsyncStorage.getItem("user_id");
+    const response = await API.post("trip/trip.php", {
+      dataname: "driverLoadingPoint",
+      driver_id: userId,
+      ...data,
+    });
     return response.data;
   };
 
   const mutation = useMutation({
     mutationFn: submitLoadingData,
     onSuccess: () => {
-      console.log("loading point data submitted");
-      Alert.alert("Success","Loading point data submitted")
-      // Handle success (e.g., show a success message, navigate to next screen)
+      Alert.alert("Success", "Loading point data submitted");
+      // Navigate or perform other success actions here
       // router.push("/screens/truckDriver/offloadingPoint");
     },
     onError: (error) => {
-     // Check if the error response contains a message
-     const errorMessage = error.response?.data?.message || "An unknown error occurred";
-    
-     console.error('Error submitting data:', error);
-     Alert.alert("Error", `${errorMessage}`);
+      const errorMessage = error.response?.data?.message || "An unknown error occurred";
+      Alert.alert("Error", `${errorMessage}`);
     },
   });
 
@@ -75,28 +80,61 @@ const LoadingPointScreen = () => {
   };
 
   const handleSubmit = () => {
+    // Perform Zod validation
+    const validation = formSchema.safeParse(formData);
+    if (!validation.success) {
+      const fieldErrors = {};
+      validation.error.errors.forEach((err) => {
+        fieldErrors[err.path[0]] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({}); // Clear previous errors
     mutation.mutate(formData);
   };
 
   return (
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
       {[
-        { label: 'Tonnage loaded', name: 'loading_qty', placeholder: 'Enter tonnage loaded' },
+        { label: 'Confirm Tonnage loaded', name: 'loading_qty', placeholder: 'Enter tonnage loaded' },
         { label: 'Remarks', name: 'remarks', placeholder: 'Enter Remarks' },
         { label: 'Odometer Reading', name: 'odometer_reading', placeholder: 'Enter Odometer Reading' },
       ].map((item, index) => (
         <View key={index} className="mb-4">
+          <View className='flex-row justify-between'>
+            
           <Text className="text-gray-600 mb-[10px]">{item.label}</Text>
+          {errors[item.name] && (
+            <Text className="text-red-500">{errors[item.name]}</Text>
+          )}
+          </View>
           <TextInput
-            className="shadow-[0px 1px 2px rgba(16,24,40,0.05)] border bg-white border-[#C4CCF0] rounded-md p-2 h-[60px]"
+           onFocus={() => setFocusedField(item.name)}
+           onBlur={() => setFocusedField(null)}
+           className={`border bg-white rounded-md p-2 h-[60px] ${
+             focusedField === item.name
+               ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+               : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+           }`}
+            // className="shadow-[0px 1px 2px rgba(16,24,40,0.05)] border bg-white border-[#C4CCF0] rounded-md p-2 h-[60px]"
             placeholder={item.placeholder}
             value={formData[item.name]}
             onChangeText={(text) => handleInputChange(item.name, text)}
           />
+         
         </View>
       ))}
 
+
+      <View className='flex-row justify-between'>
+
       <Text className="text-gray-600 mb-[10px]">Take a Snap of Loaded Truck</Text>
+      {errors.truck_picture && (
+            <Text className="text-red-500">{errors.truck_picture}</Text>
+          )}
+      </View>
 
       <TouchableOpacity className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mt-4" onPress={handleImagePick}>
         <View className='flex flex-col items-center'>
@@ -122,7 +160,7 @@ const LoadingPointScreen = () => {
         disabled={mutation.isPending}
       >
         <Text className="text-white text-center font-semibold">
-          {mutation.isPending ? 'Submitting...' : 'Accept'}
+          {mutation.isPending ? 'Submitting...' : 'Accept Trip'}
         </Text>
       </TouchableOpacity>
     </ScrollView>

@@ -8,6 +8,9 @@ const Truck = () => {
   const { truck:truckId  } = useLocalSearchParams();
   console.log(truckId);
 
+  const fallbackTruckImage = "https://images.pexels.com/photos/188679/pexels-photo-188679.jpeg?auto=compress&cs=tinysrgb&w=800";
+
+
   const { data: truckData, isLoading, isError } = useQuery({
     queryKey: ["truck", truckId], 
      queryFn:() => getTruck(truckId) 
@@ -16,7 +19,7 @@ const Truck = () => {
 
   return (
     <View className="flex-1 p-6">
-      <Image source={TruckImg} className="w-full h-48 mb-4 rounded-lg" />
+      <Image source={{uri: truckData?.image || fallbackTruckImage}} className="w-full h-48 mb-4 rounded-lg" />
 
       <View className="bg-white rounded-lg p-3">
         {[

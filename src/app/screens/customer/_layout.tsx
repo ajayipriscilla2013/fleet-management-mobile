@@ -8,7 +8,7 @@ const Layout = () => {
     <Stack>
      
       <Stack.Screen
-        name="CustomerTripDetailsScreen"
+        name="[CustomerTripDetailsScreen]"
         options={{
           headerShown: true,
           headerTitle:"Trip Details",
@@ -22,7 +22,7 @@ const Layout = () => {
       />
 
 <Stack.Screen
-        name="loadingPoint"
+        name="confirmLoading/[tripId]"
         options={{
           headerShown: true,
           headerTitle:"Loading Point",
@@ -36,7 +36,7 @@ const Layout = () => {
       />
 
 <Stack.Screen
-        name="offLoadingPoint"
+        name="confirmOffloading/[tripId]"
         options={{
           headerShown: true,
           headerTitle:"Offloading Point",
