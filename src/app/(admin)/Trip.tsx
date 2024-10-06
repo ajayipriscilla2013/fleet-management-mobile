@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import SearchIcon from "@/assets/svgs/search.svg";
 import FilterIcon from "@/assets/svgs/filter.svg";
 import LocationIcon from "@/assets/svgs/location2.svg";
@@ -27,20 +27,28 @@ import {
   getTripsWithClosingRequest,
 } from "@/src/services/other";
 import EmptyScreen from "@/assets/svgs/empty.svg";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
 
 const Trip = () => {
   const router = useRouter();
+  const { tab } = useLocalSearchParams();
 
   const handlePress = (path) => {
     router.push(path);
   };
 
+  const [activeTab, setActiveTab] = useState(tab || 'initiated');
+
   const {
     data: initiatedTripsData,
     isLoading: isInitiatedProgressLoading,
     error: initiatedError,
+    refetch:refetchInitiatedTripsData
   } = useQuery({
-    queryKey: ["initiatedTrips"],
+    queryKey: ["initiatedTripsForAdmin"],
     queryFn: getInitiatedTrips,
   });
 
@@ -50,7 +58,7 @@ const Trip = () => {
     isError: isInProgressError,
     isLoading: isInProgressLoading,
   } = useQuery({
-    queryKey: ["inProgressTrips"],
+    queryKey: ["inProgressTripsForAdmin"],
     queryFn: getInProgressTrips,
   });
 
@@ -60,7 +68,7 @@ const Trip = () => {
     isError: isDeliveredError,
     isLoading: isDeliveredLoading,
   } = useQuery({
-    queryKey: ["deliveredTrips"],
+    queryKey: ["deliveredTripsForAdmin"],
     queryFn: getCompletedTrips,
   });
 
@@ -70,7 +78,7 @@ const Trip = () => {
     isError: TripsRequestedToBeClosedisError,
     isLoading: TripsRequestedToBeClosedLoading,
   } = useQuery({
-    queryKey: ["TripsRequestedToBeClosed"],
+    queryKey: ["TripsRequestedToBeClosedForAdmin"],
     queryFn: getTripsWithClosingRequest,
   });
 
@@ -95,13 +103,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -132,13 +140,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -161,7 +169,7 @@ const Trip = () => {
           <Text className="font-semibold text-base text-[#1D1E20]">
             {item.trip_id}
           </Text>
-          <Badge label="In Progress" variant="delivered" />
+          <Badge label="Delivered" variant="delivered" />
         </View>
 
         <View className="flex flex-row items-end justify-between">
@@ -169,13 +177,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -202,6 +210,14 @@ const Trip = () => {
           <Text className="text-lg text-red-500">
             Error: {inProgressError.message}
           </Text>
+          <TouchableOpacity
+          className="bg-[#394F91] rounded-2xl p-4"
+          onPress={() => refetchInitiatedTripsData()}
+        >
+          <Text className="text-white text-center font-semibold">
+            Retry
+          </Text>
+        </TouchableOpacity>
         </View>
       );
     }
@@ -360,13 +376,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -379,8 +395,8 @@ const Trip = () => {
   const tabs = [
     { value: "initiated", title: "Initiated Trips" },
     { value: "inProgress", title: "In-Progress Trips" },
-    { value: "delivered", title: "Delivered Trips" },
     { value: "closeTrips", title: "Close Trip Requests" },
+    { value: "delivered", title: "Delivered Trips" },
   ];
 
   return (
@@ -408,7 +424,7 @@ const Trip = () => {
           <FilterIcon />
         </View>
 
-        <Tabs defaultValue="initiated">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
           <TabsList className=" ">
             <FlatList
               data={tabs}

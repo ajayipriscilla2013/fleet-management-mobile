@@ -25,6 +25,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import { getCompletedTripsForDriver, getInitiatedTripsForDriver, getInProgressTripsForDriver } from "@/src/services/drivers";
 import { useQuery } from "@tanstack/react-query";
 import EmptyScreen from "@/assets/svgs/empty.svg";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
 
 const Trip = () => {
   const router = useRouter();
@@ -38,7 +42,7 @@ const Trip = () => {
     isLoading: isInitiatedProgressLoading,
     error: initiatedError,
   } = useQuery({
-    queryKey: ["initiatedTripsforDriver"],
+    queryKey: ["initiatedTripsForDriver"],
     queryFn: getInitiatedTripsForDriver,
   });
 
@@ -48,7 +52,7 @@ const Trip = () => {
     isError: isInProgressError,
     isLoading: isInProgressLoading,
   } = useQuery({
-    queryKey: ["inProgressTrips"],
+    queryKey: ["inProgressTripsForDriver"],
     queryFn: getInProgressTripsForDriver,
   });
 
@@ -58,7 +62,7 @@ const Trip = () => {
     isError: isDeliveredError,
     isLoading: isDeliveredLoading,
   } = useQuery({
-    queryKey: ["deliveredTrips"],
+    queryKey: ["deliveredTripsForDriver"],
     queryFn: getCompletedTripsForDriver,
   });
 
@@ -84,13 +88,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -121,13 +125,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -150,7 +154,7 @@ const Trip = () => {
           <Text className="font-semibold text-base text-[#1D1E20]">
             {item.trip_id}
           </Text>
-          <Badge label="In Progress" variant="delivered" />
+          <Badge label="Delivered" variant="delivered" />
         </View>
 
         <View className="flex flex-row items-end justify-between">
@@ -158,13 +162,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>

@@ -25,6 +25,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import { useQuery } from "@tanstack/react-query";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 import { getFuelAttendantTripsFueled, getFuelAttendantTripsToBeFueled } from "@/src/services/other";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
+
 
 const Trip = () => {
   const router = useRouter();
@@ -60,22 +65,22 @@ const Trip = () => {
                 </View>
 
                 <View className="flex flex-row items-end justify-between">
-                  <View>
-                    <View className="flex-row items-center gap-1">
-                      <LocationIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        {item.vendor_address}
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1">
-                      <CalendarIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        {item.vendor_name}
-                      </Text>
-                    </View>
-                  </View>
-                  <ArrowIcon />
-                </View>
+          <View>
+            <View className="flex-row items-center gap-1">
+              <LocationIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {item.origin_name} to {item.destination_name}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <CalendarIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
+              </Text>
+            </View>
+          </View>
+          <ArrowIcon />
+        </View>
               </View>
 </TouchableOpacity>
   )
@@ -132,22 +137,22 @@ const Trip = () => {
                 </View>
 
                 <View className="flex flex-row items-end justify-between">
-                  <View>
-                    <View className="flex-row items-center gap-1">
-                      <LocationIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        {item.vendor_address}
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1">
-                      <CalendarIcon />
-                      <Text className="text-xs text-[#A5A6AB]">
-                        {item.vendor_name}
-                      </Text>
-                    </View>
-                  </View>
-                  <ArrowIcon />
-                </View>
+          <View>
+            <View className="flex-row items-center gap-1">
+              <LocationIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {item.origin_name} to {item.destination_name}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <CalendarIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
+              </Text>
+            </View>
+          </View>
+          <ArrowIcon />
+        </View>
               </View>
 </TouchableOpacity>
   )

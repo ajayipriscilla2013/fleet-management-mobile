@@ -33,7 +33,7 @@ const Notifications = () => {
     isLoading: isNotificationsProgressLoading,
     error: notificationsError,
   } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notificationsForFuelAttendant"],
     queryFn: getNotifications,
   });
 

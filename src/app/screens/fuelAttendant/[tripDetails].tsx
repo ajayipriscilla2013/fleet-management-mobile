@@ -18,7 +18,7 @@ const TripDetailsScreen = () => {
     console.log("trip_ID",tripId);
     
     const {data:tripInfo,isLoading,isError,refetch}= useQuery({
-      queryKey:["FuelAttendantTripInfo"],
+      queryKey:["TripInfoForFuelAttendant"],
       queryFn:()=>getSingleTrip(tripId)
     })
 

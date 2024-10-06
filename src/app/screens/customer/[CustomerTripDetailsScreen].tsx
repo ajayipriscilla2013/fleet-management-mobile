@@ -35,7 +35,7 @@ const TripDetailsScreen = () => {
     isError: isErrorTripsDetails,
     refetch,
   } = useQuery({
-    queryKey: ["CustomerTripDetails"],
+    queryKey: ["TripDetailsForCustomer"],
     queryFn: () => getTripDetailsforCustomer(tripId),
   });
 

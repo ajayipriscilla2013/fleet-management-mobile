@@ -42,12 +42,12 @@ const AssignVendorScreen = () => {
   const [focusedField, setFocusedField] = useState(null);
 
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery({
-    queryKey: ["vendorsss"],
+    queryKey: ["vendorssss"],
     queryFn: fetchVendors,
   });
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
-    queryKey: ["tripsss"],
+    queryKey: ["tripssss"],
     queryFn: fetchTrips,
   });
 

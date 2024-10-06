@@ -25,6 +25,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import { useQuery } from "@tanstack/react-query";
 import { getCompletedTripsforCustomer, getInitiatedTripsforCustomer, getInProgressTripsforCustomer } from "@/src/services/customer";
 import EmptyScreen from "@/assets/svgs/empty.svg";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
 
 
 const Trip = () => {
@@ -43,7 +47,7 @@ const Trip = () => {
     error: initiatedError,
     refetch: refetchInitiatedTrips,
   } = useQuery({
-    queryKey: ["initiatedTrips"],
+    queryKey: ["initiatedTripsForCustomer"],
     queryFn: getInitiatedTripsforCustomer,
   });
 
@@ -54,7 +58,7 @@ const Trip = () => {
     isLoading: isInProgressLoading,
     refetch: refetchProgressTrips,
   } = useQuery({
-    queryKey: ["inProgressTrips"],
+    queryKey: ["inProgressTripsForCustomer"],
     queryFn: getInProgressTripsforCustomer,
   });
 
@@ -65,14 +69,14 @@ const Trip = () => {
     isLoading: isDeliveredLoading,
     refetch: refetchDeliveredTrips,
   } = useQuery({
-    queryKey: ["deliveredTrips"],
+    queryKey: ["deliveredTripsForCustomer"],
     queryFn: getCompletedTripsforCustomer,
   });
 
   useEffect(() => {
     refetchInitiatedTrips(),
     refetchProgressTrips(),
-    refetchDeliveredTrips
+    refetchDeliveredTrips()
   }, []); 
 
   const renderInititatedTripItem = ({ item }) => (
@@ -96,13 +100,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -161,13 +165,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>
@@ -240,13 +244,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.customer_name}
+                {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_driver_name}
+                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
               </Text>
             </View>
           </View>

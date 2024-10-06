@@ -47,6 +47,7 @@ const TripDetailsScreen = () => {
     onSuccess:()=>{
       console.log("Trip Closed");
       Alert.alert("Success","Trip Close Request Successful")
+      router.push("/(admin)/Trip?tab=delivered")
     },
     onError:(error)=>{
       const errorMessage = error.response?.data?.message || "An unknown error occurred";
@@ -74,7 +75,7 @@ const TripDetailsScreen = () => {
             <View className="flex-row items-center mb-2">
               <OriginIcon />
               <Text className="text-gray-600 ml-1">
-                Gwarinpa, Abuja, Nigeria 
+                {tripInfo?.origin_name}
               </Text>
             </View>
 
@@ -85,7 +86,7 @@ const TripDetailsScreen = () => {
             <View className="flex-row items-center">
               <LocationIcon />
               <Text className="text-gray-600 ml-1">
-                Airport Road, Abuja, Nigeria
+              {tripInfo?.destination_name}
               </Text>
             </View>
             <View className="flex-row gap-1  ml-5">
@@ -100,8 +101,8 @@ const TripDetailsScreen = () => {
             </View>
             {[
               { label: "Trip ID", value: tripInfo?.trip_id },
-              { label: "Loading Point", value: "Gwarinpa, Abuja" },
-              { label: "Offloading Point", value: "Airport Road, Abuja" },
+              { label: "Loading Point", value:  tripInfo?.origin_name},
+              { label: "Offloading Point", value: tripInfo?.destination_name },
               {
                 label: "Status",
                 value: `${tripInfo?.status}`,
@@ -156,11 +157,11 @@ const TripDetailsScreen = () => {
               </View>
               {[
                 { label: "Tonnage Loaded", value: "20" },
-                { label: "Material", value: "Sand" },
+                { label: "Material", value:tripInfo?.producttype_name },
                 { label: "Waybil", value: "Sand" },
                 {
                   label: "Status",
-                  value: status,
+                  value: tripInfo?.status,
                   color: "text-[#18BB0C]",
                 },
               ].map((item, index) => (

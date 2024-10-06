@@ -42,7 +42,7 @@ const TripDetailsScreen = () => {
   console.log("trip_ID",tripId);
   
   const {data:tripInfo}= useQuery({
-    queryKey:["DriverTripInfo"],
+    queryKey:["TripInfoForDriver"],
     queryFn:()=>getTripDetailsForDriver(tripId)
   })
 
