@@ -93,6 +93,7 @@ const FuelInformationScreen = () => {
     onSuccess: () => {
       console.log("Fuel data submitted");
       Alert.alert("Success", "Fuel data confirmed");
+      router.push("/(fuelAttendant)/Trip?tab=fueled");
     },
     onError: (error) => {
       const errorMessage =

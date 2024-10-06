@@ -15,6 +15,11 @@ import {
 } from "react-native";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 import Tick from "@/assets/svgs/tick.svg"
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// Add the relativeTime plugin to Day.js
+dayjs.extend(relativeTime);
 
 const Notifications = () => {
   const router = useRouter();
@@ -56,7 +61,7 @@ const Notifications = () => {
         <View className="flex-row items-center justify-between">
           <Text className=""> {item.title}</Text>
           <Text className="text-[#A5A6AB] font-normal text-xs">
-            2 hours ago
+            {dayjs(item.created_at).fromNow()}
           </Text>
         </View>
         <View className="flex-row justify-between">
@@ -125,9 +130,9 @@ const Notifications = () => {
 
         <ScrollView>
           <View>
-            <Text className="text-[#A5A6AB] font-normal text-xs mb-4">
+            {/* <Text className="text-[#A5A6AB] font-normal text-xs mb-4">
               TODAY
-            </Text>
+            </Text> */}
 
            {renderNotificationsContent()}
           </View>

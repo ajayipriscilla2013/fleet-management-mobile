@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   Text,
@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
-import { router, Stack, useRouter } from "expo-router";
+import { router, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import SearchIcon from "@/assets/svgs/search.svg";
 import FilterIcon from "@/assets/svgs/filter.svg";
 import ClockIcon from "@/assets/svgs/clock.svg";
@@ -28,10 +28,12 @@ import { getFuelAttendantTripsFueled, getFuelAttendantTripsToBeFueled } from "@/
 
 const Trip = () => {
   const router = useRouter();
-
+  const { tab } = useLocalSearchParams();
   const handlePress = (path) => {
     router.push(path);
   };
+
+  const [activeTab, setActiveTab] = useState(tab || 'toBeFueled');
 
   const {data:toBeFueledData=[], isLoading:isToBeFueledProgressLoading, error:toBeFueledError}= useQuery({
     queryKey:["getTripsToBeFueledByVendor"],
@@ -213,9 +215,9 @@ const Trip = () => {
           <FilterIcon />
         </View>
 
-        
+       
 
-        <Tabs defaultValue="toBeFueled">
+        <Tabs  defaultValue={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="toBeFueled" title="To Be Fueled" />
             <TabsTrigger value="fueled" title="Fueled" />

@@ -4,7 +4,7 @@ import { getSingleTrip } from '@/src/services/other';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import EmptyScreen from "@/assets/svgs/empty.svg";
 
 const TripDetailsScreen = () => {
@@ -17,22 +17,26 @@ const TripDetailsScreen = () => {
     const {tripDetails:tripId}= useLocalSearchParams()
     console.log("trip_ID",tripId);
     
-    const {data:tripInfo}= useQuery({
+    const {data:tripInfo,isLoading,isError,refetch}= useQuery({
       queryKey:["FuelAttendantTripInfo"],
       queryFn:()=>getSingleTrip(tripId)
     })
-  return (
-    <SafeAreaView className='flex-1 bg-[#F9F9F9]'>
-      
 
-      <Tabs defaultValue="getFueledInfo">
-          <TabsList>
-            <TabsTrigger value="getFueledInfo" title="Get Fueled Info" />
-            <TabsTrigger value="fueledInfo" title="Fueled Info" />
-          </TabsList>
 
-          <TabsContent className='flex-1' value="getFueledInfo">
-          <ScrollView className="flex-1 bg-[#F9F9F9]  ">
+    const renderActionButton=()=>{
+      const status = tripInfo?.status?.toLowerCase();
+      if (status === "initiated") {
+        return (
+          <TouchableOpacity className="bg-[#394F91] rounded-2xl p-4 mt-6" onPress={() => handlePress(`/screens/fuelAttendant/confirmFuel/${tripId}`)}>
+          <Text className="text-white text-center font-semibold">Confirm Fuel Info</Text>
+        </TouchableOpacity>
+        );
+      } 
+      return null
+    }
+
+    const renderGetFueledInfo=()=>(
+<ScrollView className="flex-1 bg-[#F9F9F9]  ">
      
 
      <View className="bg-white rounded-lg p-4 mb-6">
@@ -67,20 +71,21 @@ const TripDetailsScreen = () => {
          </View>
        ))}
      </View>
-
-     <TouchableOpacity className="bg-[#394F91] rounded-2xl p-4 mt-6" onPress={() => handlePress(`/screens/fuelAttendant/confirmFuel/${tripId}`)}>
-       <Text className="text-white text-center font-semibold">Confirm Fuel Info</Text>
-     </TouchableOpacity>
+       {renderActionButton()}
+     
    </ScrollView>
-              
-          </TabsContent>
+    )
 
-       <TabsContent value="fueledInfo">
-        {
-          tripInfo?.fueled === 0 ? (<View className="flex items-center justify-center mt-10">
+    const renderFueledInfo=()=>{
+      if( tripInfo?.fueled === 0 ){
+        return(
+        <View className="flex items-center justify-center mt-10">
             <EmptyScreen />
             <Text className="text-lg text-gray-500">Trip Not Yet Fueled</Text>
-          </View>) : ( <View className="bg-white rounded-lg p-4 mb-6">
+          </View>)
+      }else{
+        return(
+        <View className="bg-white rounded-lg p-4 mb-6">
             <Text className="text-lg font-semibold mb-2">Fuel Information</Text>
             {[
               { label: 'Fuel Price', value: '₦20,000' },
@@ -97,7 +102,53 @@ const TripDetailsScreen = () => {
               </View>
             ))}
           </View>)
-        }
+      }
+    }
+      
+    if (isLoading) {
+      return (
+        <SafeAreaView className="flex-1 bg-white justify-center items-center">
+          <ActivityIndicator size="large" color="#394F91" />
+          <Text className="mt-4 text-gray-600">Loading trip details...</Text>
+        </SafeAreaView>
+      );
+    }
+  
+    if (isError) {
+      return (
+        <SafeAreaView className="flex-1 bg-white justify-center items-center">
+          <Text className="text-red-500">Error loading trip details. Please try again.</Text>
+          <TouchableOpacity
+            className="bg-[#394F91] rounded-2xl p-4"
+            onPress={() => refetch()}
+          >
+            <Text className="text-white text-center font-semibold">
+              Retry
+            </Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      );
+    }
+    
+
+
+  return (
+    <SafeAreaView className='flex-1 bg-[#F9F9F9]'>
+      
+
+      <Tabs defaultValue="getFueledInfo">
+          <TabsList>
+            <TabsTrigger value="getFueledInfo" title="Get Fueled Info" />
+            <TabsTrigger value="fueledInfo" title="Fueled Info" />
+          </TabsList>
+
+          <TabsContent className='flex-1' value="getFueledInfo">
+          {renderGetFueledInfo()}
+              
+          </TabsContent>
+
+       <TabsContent value="fueledInfo">
+       {renderFueledInfo()}
       
        </TabsContent>
 

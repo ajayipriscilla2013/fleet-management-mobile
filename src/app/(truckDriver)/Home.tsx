@@ -150,7 +150,7 @@ const fallbackVendorImage = "https://images.pexels.com/photos/18335589/pexels-ph
             <View className="mt-28 mx-6">
               <Text className="text-2xl w-2/3 text-white font-semibold">
                 Welcome,{" "}
-                <Text className="text-white font-bold text-4xl">{user?.first_name} 😊</Text>
+                <Text className="text-white font-bold text-4xl capitalize">{user?.first_name} 😊</Text>
               </Text>
             </View>
 

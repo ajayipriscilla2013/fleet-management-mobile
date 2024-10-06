@@ -15,6 +15,11 @@ import {
 } from "react-native";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 import Tick from "@/assets/svgs/tick.svg"
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// Add the relativeTime plugin to Day.js
+dayjs.extend(relativeTime);
 
 const Notifications = () => {
   const router = useRouter();
@@ -34,25 +39,20 @@ const Notifications = () => {
 
   const mutation = useMutation({
     mutationFn:markNotificationsRead,
-    onSuccess:(data)=>{
-      if (data.success) {
-        console.log("Notification Read");
-        Alert.alert("Success", "Notification Read");
-      } else {
-        console.error('Error:', data.message);
-        Alert.alert("Error", data.message || "An unknown error occurred");
-      }
+    onSuccess:()=>{
+      console.log("Notification Read");
+      Alert.alert("Success","Notification Read")
     },
     onError: (error) => {
       // Check if the error response contains a message
       const errorMessage = error.response?.data?.message || "An unknown error occurred";
      
-      console.error('Error submitting data:', errorMessage);
+      console.error('Error submitting data:', error);
       Alert.alert("Error", `${errorMessage}`);
   }})
 
   const handleSubmit = (notificationId) => {
-    mutation.mutate(notificationId);
+    mutation.mutate({ id: notificationId });
   };
 
   const renderNotificationItem = ({ item }) => (
@@ -61,7 +61,7 @@ const Notifications = () => {
         <View className="flex-row items-center justify-between">
           <Text className=""> {item.title}</Text>
           <Text className="text-[#A5A6AB] font-normal text-xs">
-            2 hours ago
+            {dayjs(item.created_at).fromNow()}
           </Text>
         </View>
         <View className="flex-row justify-between">
@@ -128,15 +128,15 @@ const Notifications = () => {
           Notification
         </Text>
 
-    
+        <ScrollView>
           <View>
-            <Text className="text-[#A5A6AB] font-normal text-xs mb-4">
+            {/* <Text className="text-[#A5A6AB] font-normal text-xs mb-4">
               TODAY
-            </Text>
+            </Text> */}
 
            {renderNotificationsContent()}
           </View>
-    
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
