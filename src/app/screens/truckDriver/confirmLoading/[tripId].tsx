@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import Camera from "@/assets/svgs/Camera.svg";
 import API from '@/src/services/api';
@@ -11,7 +11,7 @@ import { z } from 'zod'; // Import Zod
 const LoadingPointScreen = () => {
   const { tripId } = useLocalSearchParams();
   const router = useRouter();
-
+  const queryClient = useQueryClient();
   console.log("truckdriver TripID", tripId);
   
 
@@ -52,7 +52,10 @@ const LoadingPointScreen = () => {
     onSuccess: () => {
       Alert.alert("Success", "Loading point data submitted");
       // Navigate or perform other success actions here
-      // router.push("/screens/truckDriver/offloadingPoint");
+      queryClient.invalidateQueries("TripInfoForDriver"); 
+      queryClient.invalidateQueries("inProgressTripsForDriver");
+      router.push(`/screens/truckDriver?tab=inProgress`);
+      
     },
     onError: (error) => {
       const errorMessage = error.response?.data?.message || "An unknown error occurred";

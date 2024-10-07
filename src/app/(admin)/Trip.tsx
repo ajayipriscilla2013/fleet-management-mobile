@@ -43,7 +43,7 @@ const Trip = () => {
   const [activeTab, setActiveTab] = useState(tab || 'initiated');
 
   const {
-    data: initiatedTripsData,
+    data: initiatedTripsData=[],
     isLoading: isInitiatedProgressLoading,
     error: initiatedError,
     refetch:refetchInitiatedTripsData
@@ -57,6 +57,7 @@ const Trip = () => {
     error: inProgressError,
     isError: isInProgressError,
     isLoading: isInProgressLoading,
+    refetch:refetchInProgressTripsData
   } = useQuery({
     queryKey: ["inProgressTripsForAdmin"],
     queryFn: getInProgressTrips,
@@ -67,6 +68,7 @@ const Trip = () => {
     error: deliveredError,
     isError: isDeliveredError,
     isLoading: isDeliveredLoading,
+    refetch: refetchDeliveredTripsData
   } = useQuery({
     queryKey: ["deliveredTripsForAdmin"],
     queryFn: getCompletedTrips,
@@ -77,6 +79,7 @@ const Trip = () => {
     error: TripsRequestedToBeClosedError,
     isError: TripsRequestedToBeClosedisError,
     isLoading: TripsRequestedToBeClosedLoading,
+    refetch: refetchTripsRequestedToBeClosedData
   } = useQuery({
     queryKey: ["TripsRequestedToBeClosedForAdmin"],
     queryFn: getTripsWithClosingRequest,
@@ -212,7 +215,7 @@ const Trip = () => {
           </Text>
           <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4"
-          onPress={() => refetchInitiatedTripsData()}
+          onPress={() => refetchInProgressTripsData()}
         >
           <Text className="text-white text-center font-semibold">
             Retry
@@ -260,6 +263,14 @@ const Trip = () => {
           <Text className="text-lg text-red-500">
             Error: {deliveredError.message}
           </Text>
+          <TouchableOpacity
+          className="bg-[#394F91] rounded-2xl p-4"
+          onPress={() => refetchDeliveredTripsData()}
+        >
+          <Text className="text-white text-center font-semibold">
+            Retry
+          </Text>
+        </TouchableOpacity>
         </View>
       );
     }
@@ -300,6 +311,24 @@ const Trip = () => {
           <Text className="text-lg text-red-500">
             Error: {initiatedError.message}
           </Text>
+          <TouchableOpacity
+          className="bg-[#394F91] rounded-2xl p-4"
+          onPress={() => refetchInitiatedTripsData()}
+        >
+          <Text className="text-white text-center font-semibold">
+            Retry
+          </Text>
+        </TouchableOpacity>
+        </View>
+      );
+    }
+    if (initiatedTripsData.length === 0) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
+          <Text className="text-lg text-gray-500">
+            No in-progress trips found.
+          </Text>
         </View>
       );
     }
@@ -330,6 +359,14 @@ const Trip = () => {
           <Text className="text-lg text-red-500">
             Error: {TripsRequestedToBeClosedError.message}
           </Text>
+          <TouchableOpacity
+          className="bg-[#394F91] rounded-2xl p-4"
+          onPress={() => refetchTripsRequestedToBeClosedData()}
+        >
+          <Text className="text-white text-center font-semibold">
+            Retry
+          </Text>
+        </TouchableOpacity>
         </View>
       );
     }

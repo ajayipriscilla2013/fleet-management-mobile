@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   Text,
@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
-import { router, Stack, useRouter } from "expo-router";
+import { router, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import SearchIcon from "@/assets/svgs/search.svg";
 import FilterIcon from "@/assets/svgs/filter.svg";
 import ClockIcon from "@/assets/svgs/clock.svg";
@@ -32,10 +32,9 @@ dayjs.extend(localizedFormat);
 
 const Trip = () => {
   const router = useRouter();
+  const { tab } = useLocalSearchParams();
 
-  const handlePress = (path) => {
-    router.push(path);
-  };
+  const [activeTab, setActiveTab] = useState(tab || 'initiated');
 
   const {
     data: initiatedTripsData=[],
@@ -66,21 +65,20 @@ const Trip = () => {
     queryFn: getCompletedTripsForDriver,
   });
 
+  const handlePress = (path) => {
+    router.push(path);
+  };
 
-  const renderInititatedTripItem = ({ item }) => (
+  const renderTripItem = (item, status) => (
     <TouchableOpacity
-      onPress={() =>
-        handlePress(
-          `/screens/truckDriver/${item.trip_id}`
-        )
-      }
+      onPress={() => handlePress(`/screens/truckDriver/${item.trip_id}`)}
     >
       <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold text-base text-[#1D1E20]">
             {item.trip_id}
           </Text>
-          <Badge label="Initiated" variant="initiated" />
+          <Badge label={status} variant={status.toLowerCase()} />
         </View>
 
         <View className="flex flex-row items-end justify-between">
@@ -104,149 +102,32 @@ const Trip = () => {
     </TouchableOpacity>
   );
 
-  const renderInProgressTripItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() =>
-        handlePress(
-          `/screens/truckDriver/DriverTripDetailsScreen?tripId=${item.trip_id}`
-        )
-      }
-    >
-      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-semibold text-base text-[#1D1E20]">
-            {item.trip_id}
-          </Text>
-          <Badge label="In Progress" variant="inprogress" />
-        </View>
-
-        <View className="flex flex-row items-end justify-between">
-          <View>
-            <View className="flex-row items-center gap-1">
-              <LocationIcon />
-              <Text className="text-xs text-[#A5A6AB]">
-                {item.origin_name} to {item.destination_name}
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-1">
-              <CalendarIcon />
-              <Text className="text-xs text-[#A5A6AB]">
-                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
-              </Text>
-            </View>
-          </View>
-          <ArrowIcon />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderDeliveredTripItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() =>
-        handlePress(
-          `/screens/truckDriver/DriverTripDetailsScreen?tripId=${item.trip_id}`
-        )
-      }
-    >
-      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-semibold text-base text-[#1D1E20]">
-            {item.trip_id}
-          </Text>
-          <Badge label="Delivered" variant="delivered" />
-        </View>
-
-        <View className="flex flex-row items-end justify-between">
-          <View>
-            <View className="flex-row items-center gap-1">
-              <LocationIcon />
-              <Text className="text-xs text-[#A5A6AB]">
-                {item.origin_name} to {item.destination_name}
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-1">
-              <CalendarIcon />
-              <Text className="text-xs text-[#A5A6AB]">
-                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
-              </Text>
-            </View>
-          </View>
-          <ArrowIcon />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderInProgressContent = () => {
-    if (isInProgressLoading) {
+  const renderContent = (data, isLoading, error, status) => {
+    if (isLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
-          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
           <ActivityIndicator />
         </View>
       );
     }
 
-    if (isInProgressError) {
+    if (error) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
           <Text className="text-lg text-red-500">
-            Error: {inProgressError.message}
+            Error: {error.message}
           </Text>
         </View>
       );
     }
 
-    if (inProgressTripsData.length === 0) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-           <EmptyScreen />
-          <Text className="text-lg text-gray-500">
-            No in-progress trips found.
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <FlatList
-        data={inProgressTripsData}
-        renderItem={renderInProgressTripItem}
-        keyExtractor={(item) => item.trip_id.toString()}
-        className="mt-4"
-      />
-    );
-  };
-
-  const renderDeliveredContent = () => {
-    if (isDeliveredLoading) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
-          <ActivityIndicator />
-        </View>
-      );
-    }
-
-    if (isDeliveredError) {
+    if (data.length === 0) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-red-500">
-            Error: {deliveredError.message}
-          </Text>
-        </View>
-      );
-    }
-
-    if (deliveredTripsData.length === 0) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-           <EmptyScreen />
           <Text className="text-lg text-gray-500">
-            No Delivered trips found.
+            No {status.toLowerCase()} trips found.
           </Text>
         </View>
       );
@@ -254,54 +135,13 @@ const Trip = () => {
 
     return (
       <FlatList
-        data={deliveredTripsData}
-        renderItem={renderDeliveredTripItem}
+        data={data}
+        renderItem={({ item }) => renderTripItem(item, status)}
         keyExtractor={(item) => item.trip_id.toString()}
         className="mt-4"
       />
     );
   };
-
-  const renderInitiatedContent = () => {
-    if (isInitiatedProgressLoading) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
-          <ActivityIndicator />
-        </View>
-      );
-    }
-    if (initiatedError) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-          <EmptyScreen/>
-          <Text className="text-lg text-red-500">
-            Error: {initiatedError.message}
-          </Text>
-        </View>
-      );
-    }
-    if (initiatedTripsData.length === 0) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-          <EmptyScreen/>
-          <Text className="text-lg text-gray-500">
-            No initiated trips found.
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <FlatList
-        data={initiatedTripsData}
-        renderItem={renderInititatedTripItem}
-        keyExtractor={(item) => item.trip_id.toString()}
-        className="mt-4"
-      />
-    );
-  };
-
 
   return (
     <SafeAreaView className="flex-1 bg-[#F9F9F9]" style={{ 
@@ -324,7 +164,7 @@ const Trip = () => {
           <FilterIcon />
         </View>
 
-        <Tabs defaultValue="initiated">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="initiated" title="Initiated" />
             <TabsTrigger value="inProgress" title="In-Progress" />
@@ -332,13 +172,13 @@ const Trip = () => {
           </TabsList>
 
           <TabsContent value="initiated" >
-            {renderInitiatedContent()}
+            {renderContent(initiatedTripsData, isInitiatedProgressLoading, initiatedError, "Initiated")}
           </TabsContent>
           <TabsContent value="inProgress">
-            {renderInProgressContent()}
+            {renderContent(inProgressTripsData, isInProgressLoading, inProgressError, "In Progress")}
           </TabsContent>
           <TabsContent value="completed">
-            {renderDeliveredContent()}
+            {renderContent(deliveredTripsData, isDeliveredLoading, deliveredError, "Delivered")}
           </TabsContent>
         </Tabs>
 

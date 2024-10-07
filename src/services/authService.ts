@@ -76,17 +76,35 @@ export const getUserRole = (userId: string): UserRole | null => {
   return user ? user.role : null;
 };
 
-export const getRoleBasedRoute = (role: UserRole): string => {
-  switch (role) {
-    case "Customer":
+// export const getRoleBasedRoute = (role: UserRole): string => {
+//   switch (role) {
+//     case "Customer":
+//       return "/(customer)/Home";
+//     case "driver":
+//       return "/(truckDriver)/Home";
+//     case "admin":
+//       return "/(admin)/Home";
+//     case "fuelAttendant":
+//       return "/(fuelAttendant)/Home";
+//     case "Fuel Attendant":
+//       return "/(fuelAttendant)/Home";
+//     default:
+//       return "/";
+//   }
+// };
+
+export const getRoleBasedRoute = (role: string): string => {
+  // Normalize role by trimming, converting to lowercase, and removing extra spaces
+  const normalizedRole = role.trim().toLowerCase().replace(/\s+/g, "");
+
+  switch (normalizedRole) {
+    case "customer":
       return "/(customer)/Home";
     case "driver":
       return "/(truckDriver)/Home";
     case "admin":
       return "/(admin)/Home";
-    case "fuelAttendant":
-      return "/(fuelAttendant)/Home";
-    case "Fuel Attendant":
+    case "fuelattendant":
       return "/(fuelAttendant)/Home";
     default:
       return "/";

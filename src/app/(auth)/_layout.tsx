@@ -46,6 +46,45 @@ const Layout = () => {
           ),
         }}
       />
+      <Stack.Screen
+        name="AboutPage"
+        options={{
+          headerShown: true,
+          headerTitle:"",
+          headerBackTitle: "Back",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+            <Back/>
+          </TouchableOpacity>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        options={{
+          headerShown: true,
+          headerTitle:"",
+          headerBackTitle: "Back",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+            <Back/>
+          </TouchableOpacity>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        options={{
+          headerShown: true,
+          headerTitle:"",
+          headerBackTitle: "Back",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+            <Back/>
+          </TouchableOpacity>
+          ),
+        }}
+      />
     </Stack>
   );
 };

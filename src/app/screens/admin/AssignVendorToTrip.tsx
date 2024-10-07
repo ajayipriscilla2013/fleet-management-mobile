@@ -116,7 +116,7 @@ const AssignVendorScreen = () => {
   });
 
   return (
-    <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
+    <ScrollView className="flex-1  pt-6">
       <View>
         <View className='flex-row justify-between'>
           <Text className="text-gray-600 mb-[10px]">Trips</Text>
@@ -124,7 +124,15 @@ const AssignVendorScreen = () => {
             <Text className="mb-2 text-red-500">{errors.trip_id}</Text>
           )}
         </View>
-        <View className="mb-4">
+        <View
+            className={`mb-4 bg-white rounded-md p-2 h-[60px] `         }
+            style={{
+              borderWidth: 1,
+              borderColor:  "#C4CCF0" ,
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+          >
           <Picker
             value={formData.trip_id}
             onValueChange={(value) => setFormData({ ...formData, trip_id: value })}
@@ -144,7 +152,15 @@ const AssignVendorScreen = () => {
             <Text className="mb-2 text-red-500">{errors.vendor_id}</Text>
           )}
         </View>
-        <View className="mb-4">
+        <View
+            className={`mb-4 bg-white rounded-md p-2 h-[60px] `         }
+            style={{
+              borderWidth: 1,
+              borderColor:  "#C4CCF0" ,
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+          >
           <Picker
             value={formData.vendor_id}
             onValueChange={(value) => setFormData({ ...formData, vendor_id: value })}

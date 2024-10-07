@@ -24,7 +24,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
   const [focusedField, setFocusedField] = useState(null);
 
   const { data: drivers = [], isLoading: isDriversLoading } = useQuery({
-    queryKey: ["driversss"],
+    queryKey: ["driversforAssigning"],
     queryFn: async () => {
       const response = await API.post("trip/trip.php", {
         dataname: "getTruckDrivers",
@@ -37,7 +37,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
   });
 
   const { data: trips = [], isLoading: isTripsLoading } = useQuery({
-    queryKey: ["tripsss"],
+    queryKey: ["tripsToBeAssigned"],
     queryFn: async () => {
       const user_id = await AsyncStorage.getItem("user_id");
       const response = await API.post("trip/trip.php", {
@@ -59,21 +59,23 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
         ...formData,
         user_id,
       });
-      return response;
+      return response.data;
     },
     onSuccess: () => {
       setModalVisible(true);
       onAssignDriver();
     },
     onError: (error) => {
-      if (error.response) {
-        if (error.response.data.message === "Driver is currently assigned to another active trip") {
-          Alert.alert("Assignment Error", "The selected driver is already assigned to another trip. Please choose a different driver.");
-        } else {
-          Alert.alert("Error", error.response.data.message || "An unexpected error occurred.");
-        }
+      console.log("this is the rerro",error);
+      
+      // Check if the error is from the API response
+      if (error?.response && error?.response?.status === 400) {
+        const errorMessage = error?.response?.data?.message || 'An error occurred while assigning the Driver.';
+        Alert.alert("Error", errorMessage);
       } else {
-        Alert.alert("Network Error", "Unable to connect to the server. Please try again later.");
+        // For other types of errors
+        console.error("Error assigning Driver:", error);
+        Alert.alert("Error", "An unexpected error occurred. Please try again.");
       }
     },
   });
@@ -111,7 +113,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
       paddingVertical: 8,
       borderWidth: 1,
       borderColor: focusedField === fieldName ? '#394F91' : '#C4CCF0',
-      borderRadius: 8,
+      borderRadius: 12,
       color: 'black',
       paddingRight: 30,
       backgroundColor: focusedField === fieldName ? '#F0F2FF' : 'white',
@@ -119,7 +121,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
   });
 
   return (
-    <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
+    <ScrollView className="flex-1   pt-6">
       <View>
         <View className='flex-row justify-between'>
           <Text className="text-gray-600 mb-[10px]">Truck Driver</Text>
@@ -127,7 +129,15 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
             <Text className="mb-2 text-red-500">{errors.truck_driver_id}</Text>
           )}
         </View>
-        <View className="mb-4">
+        <View
+            className={`mb-4 bg-white rounded-md p-2 h-[60px] `         }
+            style={{
+              borderWidth: 1,
+              borderColor:  "#C4CCF0" ,
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+          >
           <Picker
             value={formData.truck_driver_id}
             onValueChange={(value) => setFormData({ ...formData, truck_driver_id: value })}
@@ -147,7 +157,15 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
             <Text className="mb-2 text-red-500">{errors.trip_id}</Text>
           )}
         </View>
-        <View className="mb-4">
+        <View
+            className={`mb-4 bg-white rounded-md p-2 h-[60px] `         }
+            style={{
+              borderWidth: 1,
+              borderColor:  "#C4CCF0" ,
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+          >
           <Picker
             value={formData.trip_id}
             onValueChange={(value) => setFormData({ ...formData, trip_id: value })}
@@ -162,7 +180,15 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
 
       <View>
         <Text className="text-gray-600 mb-[10px]">Fueling ?</Text>
-        <View className="mb-4">
+        <View
+            className={`mb-4 bg-white rounded-md p-2 h-[60px] `         }
+            style={{
+              borderWidth: 1,
+              borderColor:  "#C4CCF0" ,
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+          >
           <Picker
             value={formData.fuelling}
             onValueChange={(value) => setFormData({ ...formData, fuelling: value })}

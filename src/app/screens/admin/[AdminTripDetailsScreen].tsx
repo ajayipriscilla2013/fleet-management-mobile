@@ -156,7 +156,7 @@ const TripDetailsScreen = () => {
                 <Text className="text-lg font-bold mb-2">Loading Point</Text>
               </View>
               {[
-                { label: "Tonnage Loaded", value: "20" },
+                { label: "Tonnage Loaded", value: tripInfo?.loading_qty },
                 { label: "Material", value:tripInfo?.producttype_name },
                 { label: "Waybil", value: "Sand" },
                 {

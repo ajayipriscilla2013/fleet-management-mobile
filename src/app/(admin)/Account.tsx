@@ -27,6 +27,7 @@ import ArrowLogoutIcon from "@/assets/svgs/arrow-red.svg"
 import Avatar2 from "@/assets/images/avatar2.png"
 import Bg from "@/assets/images/image3.png"
 import { useAuth } from "@/src/context/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 
@@ -42,6 +43,8 @@ const Account = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const queryClient = useQueryClient();
+
   return (
 
     <View className="flex-1 bg-[#394F91] ">
@@ -55,7 +58,9 @@ const Account = () => {
         />
         <Text className="mt-2 text-xl font-semibold text-white">{userData?.first_name +" " + userData?.last_name}</Text>
         <Text className="text-white">{userData?.email}</Text>
-        <TouchableOpacity className="flex-row  items-center gap-1 mt-2 px-4 py-2 bg-white rounded-full">
+        <TouchableOpacity onPress={() =>{
+        handlePress("/(auth)/EditProfile")}
+      }  className="flex-row  items-center gap-1 mt-2 px-4 py-2 bg-white rounded-full">
           <Text className="text-[#394F91]">Edit Profile</Text>
           <EditIcon/>
         </TouchableOpacity>
@@ -64,14 +69,19 @@ const Account = () => {
       </ImageBackground>
     <ScrollView className="flex-1 bg-white rounded-t-3xl px-6 pt-6">
       {[
-        { icon: KeyIcon, text: 'Change Password' },
+        { icon: KeyIcon, text: 'Change Password', route:"/(auth)/ChangePassword"},
         { icon: MenuIcon, text: 'Manage Trips' },
         { icon: SecurityIcon, text: 'Enable Biometrics' },
-        { icon: AtIcon, text: 'About Charissatics' },
+        { icon: AtIcon, text: 'About Charissatics', route:"/(auth)/AboutPage"},
         { icon: SupportIcon, text: 'Support' },
         { icon: StarIcon, text: 'Rate our app' },
       ].map((item, index) => (
         <TouchableOpacity
+        onPress={() => {
+          if (item.route) {
+            handlePress(item.route);  // Navigate if a route exists
+          }
+        }}
           key={index}
           className="flex-row items-center py-4 border rounded-lg mb-2 px-4  border-[#F6F6F6]"
         >
@@ -86,6 +96,7 @@ const Account = () => {
       ))}
       <TouchableOpacity className="flex-row items-center py-4 border border-[#F6F6F6] rounded-lg mb-2 px-4"
       onPress={() =>{
+        queryClient.invalidateQueries();
         logout()
         handlePress("/(auth)/signin")}
       }

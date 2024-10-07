@@ -1,6 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import { useRouter } from "expo-router";
 
 
 const API = axios.create({
@@ -89,5 +90,36 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Add a response interceptor to handle errors globally
+API.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // const router = useRouter();
+    
+    if (error.response) {
+      // Check if the error status is 401
+      if (error.response.status === 401) {
+        console.error("Unauthorized. Redirecting to sign-in...");
+        
+        // Clear stored tokens
+        if (Platform.OS === "web") {
+          localStorage.removeItem("jwtToken");
+          localStorage.removeItem("user_id");
+        } else {
+          await AsyncStorage.removeItem("jwtToken");
+          await AsyncStorage.removeItem("user_id");
+        }
+
+        // Redirect to the sign-in page
+        router.push("/(auth)/signin");
+      }
+    }
+
+    // Reject the error if it's not 401 or another case needs handling
+    return Promise.reject(error);
+  }
+);
+
 
 export default API;

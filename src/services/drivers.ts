@@ -39,7 +39,7 @@ export const getInitiatedTripsForDriver = async () => {
     //     return response.data.data
     //   }
 
-    console.log("api response:", response.data);
+    // console.log("api response:", response.data);
     return response.data.data;
     // return response.data.data
   } catch (error) {
@@ -83,6 +83,8 @@ export const getTripDetailsForDriver = async (trip_id) => {
 
     //     return response.data.data
     //   }
+    console.log("tripdetails for driver",response.data.data);
+    
     return response.data.data;
   } catch (error) {
     console.error("Error fetching InProgress trips:", error);

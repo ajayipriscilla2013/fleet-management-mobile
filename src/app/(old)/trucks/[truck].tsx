@@ -24,7 +24,6 @@ const Truck = () => {
       <View className="bg-white rounded-lg p-3">
         {[
           { label: "Truck Name", value: truckData?.model },
-          { label: "Model", value: "Mac18C230a" },
           { label: "Plate Number", value: truckData?.plate_number },
           { label: "Status", value: truckData?.status },
         ].map((item, index) => (

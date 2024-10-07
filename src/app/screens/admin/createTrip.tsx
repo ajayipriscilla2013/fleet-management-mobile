@@ -34,21 +34,21 @@ import { z } from "zod";
 
 dayjs.extend(localizedFormat);
 const tripSchema = z.object({
-  // producttype_id: z.number().min(1, "Product type is required"),
-  // loading_point: z.number().min(1, "Loading point is required"),
-  // offloading_point: z.number().min(1, "Offloading point is required"),
-  // customer_id: z.string().min(1, "Customer is required"),
-  // is_customer_confirmation_required: z.enum(["0", "1"]),
-  // loading_qty: z
-  //   .string()
-  //   .regex(/^\d+$/, "Loading quantity must be a number")
-  //   .refine(
-  //     (val) => parseInt(val, 10) > 0,
-  //     "Loading quantity must be greater than 0"
-  //   ),
-  // start_date: z.date({ required_error: "Start date is required" }),
-  // end_date: z.date({ required_error: "End date is required" }),
-  // // user_id: z.string(),
+  producttype_id: z.number().min(1, "Product type is required"),
+  loading_point: z.number().min(1, "Loading point is required"),
+  offloading_point: z.number().min(1, "Offloading point is required"),
+  customer_id: z.string().min(1, "Customer is required"),
+  is_customer_confirmation_required: z.enum(["0", "1"]),
+  loading_qty: z
+    .string()
+    .regex(/^\d+$/, "Loading quantity must be a number")
+    .refine(
+      (val) => parseInt(val, 10) > 0,
+      "Loading quantity must be greater than 0"
+    ),
+  start_date: z.date({ required_error: "Start date is required" }),
+  end_date: z.date({ required_error: "End date is required" }),
+  // user_id: z.string(),
 });
 
 const CreateTripForm = () => {
