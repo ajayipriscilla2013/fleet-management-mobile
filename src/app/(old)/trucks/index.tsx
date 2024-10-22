@@ -27,24 +27,7 @@ import { getTrucks } from "@/src/services/other";
 
 
 
-// const data = [
-//   {
-//     id: "1",
-//     title: "Sand Truck",
-//     make: "Mac18C230",
-//     brand: "IWU9027O83",
-//     image:
-//       "https://global.ariseplay.com/amg/www.arise.tv/uploads/2023/07/NNPC-1.png",
-//   },
-//   {
-//     id: "1",
-//     title: "Sand Truck",
-//     make: "Mac18C230",
-//     brand: "IWU9027O83",
-//     image:
-//       "https://global.ariseplay.com/amg/www.arise.tv/uploads/2023/07/NNPC-1.png",
-//   },
-// ];
+
 
 const Trucks = () => {
   const router = useRouter();
@@ -52,11 +35,53 @@ const Trucks = () => {
     router.push(path);
   };
 
-  const{data}=useQuery({
+  const{data,isLoading}=useQuery({
     queryKey:["trucks"],
     queryFn:getTrucks
   })
   const fallbackTruckImage = "https://images.pexels.com/photos/188679/pexels-photo-188679.jpeg?auto=compress&cs=tinysrgb&w=800";
+
+  const renderSkeleton = () => (
+    <FlatList
+      data={Array(6).fill({})} // Array of 6 empty objects to simulate 6 skeleton items
+      renderItem={renderSkeletonItem}
+      keyExtractor={(_, index) => `skeleton-${index}`}
+      numColumns={2}
+      columnWrapperStyle={{ justifyContent: "space-between" }}
+      contentContainerStyle={{ paddingHorizontal: 8 }}
+    />
+  );
+
+  const renderSkeletonItem = () => (
+    <View className="p-2 w-[50%]">
+      <View className="w-full h-48 rounded-lg bg-[##e0e0e0] animate-pulse" />
+      <View className="mt-2 h-4 w-3/4 bg-[##e0e0e0] rounded-lg animate-pulse" />
+      <View className="mt-2 h-3 w-2/3 bg-[##e0e0e0] rounded-lg animate-pulse" />
+      <View className="mt-2 flex-row items-center gap-2">
+        <View className="h-3 w-1/4 bg-[##e0e0e0] rounded-lg animate-pulse" />
+        <View className="h-3 w-1/4 bg-[##e0e0e0] rounded-lg animate-pulse" />
+      </View>
+      <View className="mt-2 h-3 w-2/3 bg-[##e0e0e0] rounded-lg animate-pulse" />
+    </View>
+  );
+
+  const renderTrucksContent=()=>{
+    if (isLoading){
+      renderSkeleton()
+    }
+    return (
+      <FlatList
+      className="mx-2"
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
+        contentContainerStyle={{ paddingHorizontal: 8 }}
+      />
+    )
+  }
+
 
   const renderItem = ({ item }) => (
     <View className="p-2 w-[50%]">
@@ -95,15 +120,7 @@ const Trucks = () => {
       </View>
 
 
-          <FlatList
-          className="mx-2"
-            data={data}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
-            contentContainerStyle={{ paddingHorizontal: 8 }}
-          />
+          {renderTrucksContent()}
        
     </SafeAreaView>
   );

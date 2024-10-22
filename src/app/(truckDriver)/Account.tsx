@@ -97,7 +97,9 @@ const Account = () => {
       onPress={() =>{
         queryClient.invalidateQueries();
         logout()
-        handlePress("/(auth)/signin")}
+        router.replace("/(auth)/signin")
+        // handlePress("/(auth)/signin")
+      }
       }
       >
       <View className="rounded-full bg-[#FFEBE5] p-2 ">

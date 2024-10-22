@@ -51,11 +51,12 @@ const LoadingPointScreen = () => {
       router.push("/(customer)/Trip?tab=inProgress");
     },
     onError: (error) => {
-     // Check if the error response contains a message
-     const errorMessage = error.response?.data?.message || "An unknown error occurred";
+     
+     const errorMessage = error.response?.data?.message || "Request Failed, Try Again";
     
      console.error('Error submitting data:', error);
      Alert.alert("Error", `${errorMessage}`);
+    
     },
   });
 

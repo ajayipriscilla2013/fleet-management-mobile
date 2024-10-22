@@ -11,6 +11,7 @@ import {
   Image,
   FlatList,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import LocationIcon from "@/assets/svgs/location3.svg";
 import OriginIcon from "@/assets/svgs/record-circle.svg";
@@ -32,6 +33,36 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 
 dayjs.extend(localizedFormat);
 
+const SkeletonLoader = () => {
+  return (
+    <View className="px-4 pt-6">
+      {/* Skeleton for the Origin/Destination Info */}
+      <View className="bg-[#EEF0FB] rounded-lg p-4 mb-6">
+        <View className="h-5 w-32 bg-gray-300 rounded mb-2" />
+        <View className="h-4 w-24 bg-gray-300 rounded mb-1" />
+        <View className="h-4 w-40 bg-gray-300 rounded mb-1" />
+      </View>
+
+      {/* Skeleton for Trip Information */}
+      <View className="bg-white rounded-lg p-4 mb-6">
+        <View className="h-6 w-40 bg-gray-300 rounded mb-4" />
+        {new Array(6).fill(0).map((_, index) => (
+          <View
+            key={index}
+            className="flex-row justify-between mb-1 border-b-[1px] border-[#F0F1F1] py-3"
+          >
+            <View className="h-4 w-20 bg-gray-300 rounded" />
+            <View className="h-4 w-28 bg-gray-300 rounded" />
+          </View>
+        ))}
+      </View>
+
+      {/* Skeleton for Action Button */}
+      <View className="h-10 w-full bg-gray-300 rounded-2xl mt-6" />
+    </View>
+  );
+};
+
 const TripDetailsScreen = () => {
   const router = useRouter();
 
@@ -43,7 +74,7 @@ const TripDetailsScreen = () => {
 
   console.log("trip_ID", tripId);
 
-  const { data: tripInfo } = useQuery({
+  const { data: tripInfo,isLoading } = useQuery({
     queryKey: ["TripInfoForDriver"],
     queryFn: () => getTripDetailsForDriver(tripId),
   });
@@ -55,8 +86,7 @@ const TripDetailsScreen = () => {
       Alert.alert("Success", "Close Trip Request Successful");
     },
     onError: (error) => {
-      const errorMessage =
-        error.response?.data?.message || "An unknown error occurred";
+      const errorMessage = error.response?.data?.message || "Request Failed, Try Again";
       console.error("Error submitting data:", error);
       Alert.alert("Error", `${errorMessage}`);
     },
@@ -75,7 +105,6 @@ const TripDetailsScreen = () => {
   const renderActionButton = () => {
     switch (tripInfo?.status) {
       case "initiated":
-        if (tripInfo?.fuelling === 1 && !tripInfo?.fuelled) {
         return (
           <>
           <TouchableOpacity
@@ -88,35 +117,55 @@ const TripDetailsScreen = () => {
               Accept Trip
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
               className="bg-white border border-gray-300 rounded-2xl p-4 mt-6"
               onPress={() => handlePress(`/screens/truckDriver/getFuel/${tripId}`)}
             >
               <Text className="text-black text-center font-semibold">
                 Get Fuel
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </>
-        )}
+        )
       case "in_progress":
-        return (
-          <TouchableOpacity
-    className="bg-[#394F91] rounded-2xl p-4 mt-6"
-    onPress={() =>
-      handlePress(
-        `/screens/truckDriver/confirmOffloading/${tripId}`
-      )
-    }
-  >
-    <Text className="text-white text-center font-semibold">
-      Request to Close Trip
-    </Text>
-  </TouchableOpacity>
-        );
-      default:
+        if (tripInfo.driver_loading_confirmed === 1 && tripInfo.driver_offloading_confirmed=== 1) {
+          return (
+            <TouchableOpacity
+              className="bg-[#394F91] rounded-2xl p-4 mt-6"
+              onPress={handleSubmit} // Call the function to request to close trip
+            >
+              <Text className="text-white text-center font-semibold">
+                Request To Close Trip
+              </Text>
+            </TouchableOpacity>
+          );
+        } else {
+          return (
+            <TouchableOpacity
+              className="bg-[#394F91] rounded-2xl p-4 mt-6"
+              onPress={() =>
+                handlePress(
+                  `/screens/truckDriver/confirmOffloading/${tripId}?destination=${tripInfo?.destination_name}`
+                )
+              }
+            >
+              <Text className="text-white text-center font-semibold">
+                Input Offloading Point Details
+              </Text>
+            </TouchableOpacity>
+          )};
+       default:
         return null;
     }
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <SkeletonLoader />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -126,6 +175,8 @@ const TripDetailsScreen = () => {
           <TabsTrigger value="loadingPoint" title="Loading Point" />
           <TabsTrigger value="offloadingPoint" title="Offloading Point" />
         </TabsList>
+
+        
 
         <TabsContent value="tripInfo" className="flex-1 bg-[#F9F9F9] ">
           <ScrollView className="flex-1 px-4 pt-6">

@@ -190,6 +190,7 @@ import Logo from "@/assets/images/Logo.png";
 import { Input } from "@/components/Input"; 
 import Feather from '@expo/vector-icons/Feather';
 import { useAuth } from "@/src/context/AuthContext";
+import PushNotifi from "./pushtoken";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -341,6 +342,7 @@ const LoginPage = () => {
             </TouchableOpacity>
           </View>
         </ScrollView>
+   
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

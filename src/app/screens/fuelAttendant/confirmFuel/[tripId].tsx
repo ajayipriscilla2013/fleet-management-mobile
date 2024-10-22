@@ -97,9 +97,10 @@ const FuelInformationScreen = () => {
     },
     onError: (error) => {
       const errorMessage =
-        error.response?.data?.message || "An unknown error occurred";
+        error.response?.data?.message || "Request Failed Try again";
       console.error("Error submitting data:", error);
       Alert.alert("Error", `${errorMessage}`);
+      
     },
   });
 

@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import EmptyScreen from "@/assets/svgs/empty.svg";
+import { getFuelAttendantTripDetails } from '@/src/services/fuelAttendant';
 
 const TripDetailsScreen = () => {
   const router = useRouter();
@@ -19,13 +20,13 @@ const TripDetailsScreen = () => {
     
     const {data:tripInfo,isLoading,isError,refetch}= useQuery({
       queryKey:["TripInfoForFuelAttendant"],
-      queryFn:()=>getSingleTrip(tripId)
+      queryFn:()=>getFuelAttendantTripDetails(tripId)
     })
 
 
     const renderActionButton=()=>{
       const status = tripInfo?.status?.toLowerCase();
-      if (status === "initiated") {
+      if (status === "in_progress") {
         return (
           <TouchableOpacity className="bg-[#394F91] rounded-2xl p-4 mt-6" onPress={() => handlePress(`/screens/fuelAttendant/confirmFuel/${tripId}`)}>
           <Text className="text-white text-center font-semibold">Confirm Fuel Info</Text>

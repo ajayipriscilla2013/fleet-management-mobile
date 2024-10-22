@@ -6,6 +6,7 @@ import {
   Alert,
   FlatList,
   Platform,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -17,6 +18,8 @@ import EmptyScreen from "@/assets/svgs/empty.svg";
 import Tick from "@/assets/svgs/tick.svg"
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { useState } from "react";
+import SkeletonLoader from "@/components/NotificationsSkeletonLoader";
 
 // Add the relativeTime plugin to Day.js
 dayjs.extend(relativeTime);
@@ -27,11 +30,19 @@ const Notifications = () => {
   const handlePress = (path) => {
     router.push(path);
   };
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetch()
+    setRefreshing(false);
+  };
 
   const {
     data: notificationsData=[],
     isLoading: isNotificationsProgressLoading,
     error: notificationsError,
+    refetch
   } = useQuery({
     queryKey: ["notificationsForFuelAttendant"],
     queryFn: getNotifications,
@@ -78,6 +89,15 @@ const Notifications = () => {
   );
 
   const renderNotificationsContent = () => {
+    if(refreshing){
+      return(
+        <View className="mt-4">
+        <SkeletonLoader />
+        <SkeletonLoader />
+        <SkeletonLoader />
+      </View>
+      )
+    }
     if (isNotificationsProgressLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
@@ -89,9 +109,20 @@ const Notifications = () => {
     if (notificationsError) {
       return (
         <View className="flex items-center justify-center mt-10">
-          <Text className="text-lg text-red-500">
+          {/* <Text className="text-lg text-red-500">
             Error: {notificationsError.message}
+          </Text> */}
+          <Text className="text-lg text-red-500">
+          Request Failed, Try Again
           </Text>
+          <TouchableOpacity
+          className="bg-[#394F91] rounded-2xl p-4"
+          onPress={() => refetch()}
+        >
+          <Text className="text-white text-center font-semibold">
+            Retry
+          </Text>
+        </TouchableOpacity>
         </View>
       );
     }
@@ -99,7 +130,7 @@ const Notifications = () => {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-gray-500">No Notifications found.</Text>
+          <Text className="text-lg text-gray-500">You have No Notifications .</Text>
         </View>
       );
     }
@@ -110,6 +141,9 @@ const Notifications = () => {
         renderItem={renderNotificationItem}
         keyExtractor={(item) => item.id.toString()}
         className="mt-4"
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       />
     );
   };

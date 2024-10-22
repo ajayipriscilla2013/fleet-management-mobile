@@ -46,7 +46,7 @@ const TripDetailsScreen = () => {
   const renderActionButton = () => {
     const status = tripsDetailsData?.status?.toLowerCase();
     
-    if (status === "initiated") {
+    if (tripsDetailsData?.customer_loading_confirmed === 0) {
       return (
         <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4 mt-6"
@@ -57,7 +57,7 @@ const TripDetailsScreen = () => {
           </Text>
         </TouchableOpacity>
       );
-    } else if (status === "in_progress") {
+    } else if (status === "in_progress" && tripsDetailsData?.customer_offloading_confirmed === 0) {
       return (
         <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4 mt-6"
@@ -125,6 +125,14 @@ const TripDetailsScreen = () => {
                 {
                   label: "Delivery Time",
                   value: dayjs(tripsDetailsData?.delivery_time).format("LL"),
+                },
+                {
+                  label: "Loading Point Details submitted",
+                  value: tripsDetailsData?.customer_loading_confirmed === 1 ? "Yes" : "No" ,
+                },
+                {
+                  label: "OffLoading Point Details submitted",
+                  value: tripsDetailsData?.customer_offloading_confirmed === 1 ? "Yes" : "No" ,
                 },
               ].map((item, index) => (
                 <View

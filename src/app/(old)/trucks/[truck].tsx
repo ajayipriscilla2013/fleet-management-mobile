@@ -4,6 +4,29 @@ import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { getTruck } from "@/src/services/other";
 
+const SkeletonLoader = () => {
+  return (
+    <View className="flex-1 p-6">
+      {/* Skeleton for Truck Image */}
+      <View className="w-full h-48 mb-4 rounded-lg bg-[#e0e0e0]" />
+
+      <View className="bg-white rounded-lg p-3">
+        {["Truck Name", "Plate Number", "Status"].map((label, index) => (
+          <View
+            key={index}
+            className="flex-row justify-between mb-1 border-b-[1px] border-[#F0F1F1] py-3"
+          >
+            <Text className="text-[#A5A6AB]">{label}</Text>
+            {/* Skeleton for the values */}
+            <View className="w-[120px] h-[16px] bg-[#e0e0e0] rounded-sm" />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+
 const Truck = () => {
   const { truck:truckId  } = useLocalSearchParams();
   console.log(truckId);
@@ -16,6 +39,9 @@ const Truck = () => {
      queryFn:() => getTruck(truckId) 
    });
 
+   if (isLoading) {
+    return <SkeletonLoader />;
+  }
 
   return (
     <View className="flex-1 p-6">

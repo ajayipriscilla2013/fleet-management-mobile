@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Platform,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -29,6 +30,7 @@ import {
 import EmptyScreen from "@/assets/svgs/empty.svg";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import SkeletonLoader from "@/components/TripsSkeletonLoader";
 
 dayjs.extend(localizedFormat);
 
@@ -39,6 +41,7 @@ const Trip = () => {
   const handlePress = (path) => {
     router.push(path);
   };
+  const [refreshing, setRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState(tab || 'initiated');
 
@@ -84,6 +87,36 @@ const Trip = () => {
     queryKey: ["TripsRequestedToBeClosedForAdmin"],
     queryFn: getTripsWithClosingRequest,
   });
+
+  const handleInitiatedTripsDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchInitiatedTripsData()
+    setRefreshing(false);
+  };
+
+  const handleInProgressTripsDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchInProgressTripsData()
+    setRefreshing(false);
+  };
+
+  const handleDeliveredTripsDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchDeliveredTripsData()
+    setRefreshing(false);
+  };
+
+  const handleTripsRequestedToBeClosedDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchTripsRequestedToBeClosedData()
+    setRefreshing(false);
+  };
+
+  useEffect(()=>{
+    refetchInitiatedTripsData()
+    refetchInProgressTripsData()
+    refetchDeliveredTripsData()
+  },[])
 
   const renderInititatedTripItem = ({ item }) => (
     <TouchableOpacity
@@ -197,6 +230,15 @@ const Trip = () => {
   );
 
   const renderInProgressContent = () => {
+    if (refreshing) {
+      return (
+        <View>
+          <SkeletonLoader />
+          <SkeletonLoader />
+          <SkeletonLoader />
+        </View>
+      );
+    }
     if (isInProgressLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
@@ -210,8 +252,11 @@ const Trip = () => {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-red-500">
+          {/* <Text className="text-lg text-red-500">
             Error: {inProgressError.message}
+          </Text> */}
+          <Text className="text-lg text-red-500">
+           Request Failed, Try Again
           </Text>
           <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4"
@@ -242,11 +287,24 @@ const Trip = () => {
         renderItem={renderInProgressTripItem}
         keyExtractor={(item) => item.trip_id.toString()}
         className="mt-4"
+        contentContainerStyle={{ paddingBottom: 150 }}
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={handleInProgressTripsDataRefresh} />
+        }
       />
     );
   };
 
   const renderDeliveredContent = () => {
+    if (refreshing) {
+      return (
+        <View>
+          <SkeletonLoader />
+          <SkeletonLoader />
+          <SkeletonLoader />
+        </View>
+      );
+    }
     if (isDeliveredLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
@@ -260,8 +318,11 @@ const Trip = () => {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-red-500">
+          {/* <Text className="text-lg text-red-500">
             Error: {deliveredError.message}
+          </Text> */}
+          <Text className="text-lg text-red-500">
+           Request Failed, Try Again
           </Text>
           <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4"
@@ -291,12 +352,25 @@ const Trip = () => {
         data={deliveredTripsData}
         renderItem={renderDeliveredTripItem}
         keyExtractor={(item) => item.trip_id.toString()}
-        className="mt-4"
+        className="mt-4 "
+        contentContainerStyle={{ paddingBottom: 150 }}
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={handleDeliveredTripsDataRefresh} />
+        }
       />
     );
   };
 
   const renderInitiatedContent = () => {
+    if (refreshing) {
+      return (
+        <View>
+          <SkeletonLoader />
+          <SkeletonLoader />
+          <SkeletonLoader />
+        </View>
+      );
+    }
     if (isInitiatedProgressLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
@@ -308,8 +382,9 @@ const Trip = () => {
     if (initiatedError) {
       return (
         <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
           <Text className="text-lg text-red-500">
-            Error: {initiatedError.message}
+            Request Failed, Try Again 
           </Text>
           <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4"
@@ -338,15 +413,27 @@ const Trip = () => {
         renderItem={renderInititatedTripItem}
         keyExtractor={(item) => item.trip_id.toString()}
         className="mt-4"
+        contentContainerStyle={{ paddingBottom: 150 }}
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={handleInitiatedTripsDataRefresh} />
+        }
       />
     );
   };
 
   const renderTripClosingContent = () => {
+    if (refreshing) {
+      return (
+        <View>
+          <SkeletonLoader />
+          <SkeletonLoader />
+          <SkeletonLoader />
+        </View>
+      );
+    }
     if (TripsRequestedToBeClosedLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
-          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
           <ActivityIndicator />
         </View>
       );
@@ -357,7 +444,7 @@ const Trip = () => {
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
           <Text className="text-lg text-red-500">
-            Error: {TripsRequestedToBeClosedError.message}
+          Request Failed, Try Again 
           </Text>
           <TouchableOpacity
           className="bg-[#394F91] rounded-2xl p-4"
@@ -388,6 +475,10 @@ const Trip = () => {
         renderItem={renderTripClosingItem}
         keyExtractor={(item) => item.trip_id.toString()}
         className="mt-4"
+        contentContainerStyle={{ paddingBottom: 150 }}
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={handleTripsRequestedToBeClosedDataRefresh} />
+        }
       />
     );
   };
@@ -413,7 +504,7 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.origin_name} to {item.destination_name}
+              {item.origin_name} to {item.destination_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
@@ -438,7 +529,7 @@ const Trip = () => {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-[#F9F9F9]"
+      className="flex-1 bg-[#F9F9F9]  "
       style={{
         flex: 1,
         backgroundColor: "#F9F9F9",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Modal, Alert, ActivityIndicator } from 'react-native';
 import SuccessIcon from "@/assets/images/success.png";
 import { router } from 'expo-router';
@@ -6,7 +6,7 @@ import Picker from 'react-native-picker-select';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '@/src/services/api';
 import { z } from 'zod';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const assignVendorSchema = z.object({
   vendor_id: z.number().min(1, "Vendor is required"),
@@ -24,9 +24,9 @@ const fetchVendors = async () => {
 
 const fetchTrips = async () => {
   const user_id = await AsyncStorage.getItem("user_id");
-  const response = await API.post("trip/trip.php", { dataname: "getTrips", user_id });
+  const response = await API.post("trip/trip.php", { dataname: "getInitiatedTrips",});
   return response.data.data.map(trip => ({
-    label: `Trip ${trip.id} - ${trip.origin_name} to ${trip.destination_name}`,
+    label: ` ${trip.trip_id} - ${trip.origin_name} to ${trip.destination_name}`,
     value: trip.trip_id,
   }));
 };
@@ -41,6 +41,8 @@ const AssignVendorScreen = () => {
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
 
+  const queryClient = useQueryClient();
+
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery({
     queryKey: ["vendorssss"],
     queryFn: fetchVendors,
@@ -50,6 +52,8 @@ const AssignVendorScreen = () => {
     queryKey: ["tripssss"],
     queryFn: fetchTrips,
   });
+
+  
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -64,14 +68,16 @@ const AssignVendorScreen = () => {
     onSuccess: (data) => {
       if (data.error === "success") {
         setModalVisible(true);
+        queryClient.invalidateQueries("initiatedTripsForAdmin"); 
       } else {
-        Alert.alert("Assignment Unsuccessful", `Error assigning Vendor! ${data.message}`);
+        Alert.alert("Assignment Unsuccessful", `Error assigning Vendor! `);
       }
     },
     onError: (error) => {
-      const serverError = error?.response?.data?.message || 'An error occurred while assigning the vendor.';
+      const serverError = error?.response?.data?.message || 'Request Failed, Try Again';
       console.error("Error assigning Vendor:", error);
       Alert.alert("Error", serverError);
+
     },
   });
 

@@ -31,6 +31,7 @@ import AssignVendorScreen from "./AssignVendorToTrip";
 import SuccessIcon from "@/assets/images/success.png";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { z } from "zod";
+import CustomModal from "@/components/CustomModal";
 
 dayjs.extend(localizedFormat);
 const tripSchema = z.object({
@@ -53,6 +54,7 @@ const tripSchema = z.object({
 
 const CreateTripForm = () => {
   const [activeTab, setActiveTab] = useState("tripInfo");
+  const [isFuelling, setIsFuelling] = useState("0");
 
   const [formData, setFormData] = useState({
     producttype_id: "",
@@ -75,7 +77,7 @@ const CreateTripForm = () => {
   const [showEndDate, setShowEndDate] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [modalContent, setModalContent] = useState({});
   const [isFocused, setIsFocused] = useState(false);
   const [errors, setErrors] = useState({}); // To hold form errors
 
@@ -95,19 +97,31 @@ const CreateTripForm = () => {
     fetchData();
   }, []);
   const createTripMutation = useMutation({
-    mutationFn: async (newTrip) =>{
-      const user_id = await AsyncStorage.getItem("user_id"); 
+    mutationFn: async (newTrip) => {
+      const user_id = await AsyncStorage.getItem("user_id");
       API.post("trip/trip.php", {
         ...newTrip,
         user_id,
         dataname: "createTrip",
-      })
-    }
-     ,
+      });
+    },
     onSuccess: (data) => {
       console.log("Trip created successfully", data);
       Alert.alert("Success", "Trip Created Succeefully");
       setActiveTab("assignTruckDriver");
+      // setModalContent({
+      //   title: " Successful 🚀",
+      //   message: "Trip Creation successfull",
+      //   content: (
+      //     <View>
+           
+      //     </View>
+      //   ),
+      //   icon: SuccessIcon,
+      //   buttonText: "Continue",
+      //   buttonColor: "#394F91",
+      //   titleColor: "#394F91"
+      // });
       // setModalVisible(true);
       // Handle success (e.g., show a success message, navigate to another screen)
       // QueryClient.invalidateQueries('trips'); // Assuming you have a 'trips' query to refetch
@@ -118,7 +132,8 @@ const CreateTripForm = () => {
         error.response?.data?.message || "An unknown error occurred";
 
       console.error("Error submitting data:", errorMessage);
-      Alert.alert("Error", `${errorMessage}`);
+      // Alert.alert("Error", `${errorMessage}`);
+      Alert.alert("Error", "Request Failed, Try Again");
     },
   });
 
@@ -151,7 +166,11 @@ const CreateTripForm = () => {
   const handleAssignDriver = () => {
     // Logic to assign truck driver
     // On success, switch to the AssignVendor form
-    setActiveTab("assignVendor");
+    if (isFuelling === "1") {
+      setActiveTab("assignVendor");
+    } else {
+      // setModalVisible(true);
+    }
   };
 
   const handleAssignVendor = () => {
@@ -464,7 +483,10 @@ const CreateTripForm = () => {
 
   const renderAssignDriverToTrip = () => (
     <>
-      <AssignTruckDriverScreen onAssignDriver={handleAssignDriver} />
+      <AssignTruckDriverScreen
+        setIsFuelling={setIsFuelling}
+        onAssignDriver={handleAssignDriver}
+      />
     </>
   );
 
@@ -528,35 +550,48 @@ const CreateTripForm = () => {
               Setup Fuel Information
             </Text>
           </TouchableOpacity>
-          <View className="h-1 bg-gray-200 flex-1 mx-2" />
-          <TouchableOpacity
-            className="items-center"
-            onPress={() => setActiveTab("assignVendor")}
-          >
-            <View
-              className={`w-6 h-6 ${
-                activeTab === "assignVendor" ? "bg-[#394F91]" : "bg-gray-200"
-              } rounded-full justify-center items-center`}
-            >
-              {activeTab === "assignVendor" && <Tick />}
-            </View>
-            <Text
-              className={`text-sm font-semibold mt-1 ${
-                activeTab === "assignVendor"
-                  ? "text-[#394F91]"
-                  : "text-gray-400"
-              }`}
-            >
-              Assign Vendor
-            </Text>
-            <Text className="text-xs text-gray-400">Setup Vendor Details</Text>
-          </TouchableOpacity>
+         
+
+          {isFuelling === "1" && (
+            <>
+             <View className="h-1 bg-gray-200 flex-1 mx-2" />
+              <View className="h-1 bg-gray-200 flex-1 mx-2" />
+              <TouchableOpacity
+                className="items-center"
+                onPress={() => setActiveTab("assignVendor")}
+              >
+                <View
+                  className={`w-6 h-6 ${
+                    activeTab === "assignVendor"
+                      ? "bg-[#394F91]"
+                      : "bg-gray-200"
+                  } rounded-full justify-center items-center`}
+                >
+                  {activeTab === "assignVendor" && <Tick />}
+                </View>
+                <Text
+                  className={`text-sm font-semibold mt-1 ${
+                    activeTab === "assignVendor"
+                      ? "text-[#394F91]"
+                      : "text-gray-400"
+                  }`}
+                >
+                  Assign Vendor
+                </Text>
+                <Text className="text-xs text-gray-400">
+                  Setup Vendor Details
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         {/* Render content based on active tab */}
         {activeTab === "tripInfo" && renderTripInformation()}
         {activeTab === "assignTruckDriver" && renderAssignDriverToTrip()}
-        {activeTab === "assignVendor" && renderAssignVendorToTrip()}
+        {activeTab === "assignVendor" &&
+          isFuelling === "1" &&
+          renderAssignVendorToTrip()}
         {/* Success Screen */}
         {activeTab === "success" && (
           <Modal
@@ -591,6 +626,12 @@ const CreateTripForm = () => {
           </Modal>
         )}
       </View>
+
+      <CustomModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        {...modalContent}
+      />
     </ScrollView>
   );
 };

@@ -98,6 +98,48 @@ const Vendors = () => {
   } = useQuery({queryKey:['vendors'],queryFn: getVendors});
 
   console.log(vendorsData);
+
+  const renderSkeleton = () => (
+    <FlatList
+      data={Array(6).fill({})} // Array of 6 empty objects to simulate 6 skeleton items
+      renderItem={renderSkeletonItem}
+      keyExtractor={(_, index) => `skeleton-${index}`}
+      numColumns={2}
+      columnWrapperStyle={{ justifyContent: "space-between" }}
+      contentContainerStyle={{ paddingHorizontal: 8 }}
+    />
+  );
+
+  const renderSkeletonItem = () => (
+    <View className="p-2 w-[50%]">
+      <View className="w-full h-48 rounded-lg bg-[#e0e0e0] animate-pulse" />
+      <View className="mt-2 h-4 w-3/4 bg-[#e0e0e0] rounded-lg animate-pulse" />
+      <View className="mt-2 h-3 w-2/3 bg-[#e0e0e0] rounded-lg animate-pulse" />
+      <View className="mt-2 flex-row items-center gap-2">
+        <View className="h-3 w-1/4 bg-[#e0e0e0] rounded-lg animate-pulse" />
+        <View className="h-3 w-1/4 bg-[#e0e0e0] rounded-lg animate-pulse" />
+      </View>
+      <View className="mt-2 h-3 w-2/3 bg-[#e0e0e0] rounded-lg animate-pulse" />
+    </View>
+  );
+
+
+
+  const renderVendorsContent=()=>{
+    if (isLoadingVendors){
+      renderSkeleton()
+    }
+    return (
+      <FlatList
+      data={vendorsData}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id}
+      numColumns={2}
+      columnWrapperStyle={{ justifyContent: "space-between" }}
+      contentContainerStyle={{ paddingHorizontal: 8,  }}
+    />
+    )
+  }
   
 
   const renderItem = ({ item }) => (
@@ -110,10 +152,6 @@ const Vendors = () => {
         className="w-full h-48 rounded-lg bg-slate-200"
       />
       <Text className="mt-2 text-lg font-bold">{item.name}</Text>
-      <View className="flex-row items-center gap-1">
-        <LocationIcon />
-        <Text className="text-[#1D1E20]">{item.address}</Text>
-      </View>
       <View className="flex-row items-center gap-2">
         <View className="flex-row items-center gap-1">
           <StarIcon />
@@ -124,6 +162,11 @@ const Vendors = () => {
           <Text className="text-[#1D1E20]">{item.vendor_type_name}</Text>
         </View>
       </View>
+      <View className="flex-row items-center gap-1">
+        <LocationIcon />
+        <Text className="text-[#1D1E20]">{item.address}</Text>
+      </View>
+      
       {/* <Text className="text-[#1D1E20]">{item.distance} • {item.time}</Text> */}
       </Pressable>
     </View>
@@ -141,24 +184,11 @@ const Vendors = () => {
         <FilterIcon />
       </View>
 
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all" title="All" />
-          <TabsTrigger value="fuelStations" title="Fuel Stations" />
-          <TabsTrigger value="others" title="Others" />
-        </TabsList>
+      
+      {renderVendorsContent()}
 
-        <TabsContent value="all" className="flex-1 ">
-          <FlatList
-            data={vendorsData}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
-            contentContainerStyle={{ paddingHorizontal: 8,  }}
-          />
-        </TabsContent>
-      </Tabs>
+         
+      
     </SafeAreaView>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,8 @@ import * as ImagePicker from 'expo-image-picker';
 import Camera from "@/assets/svgs/Camera.svg";
 import API from '@/src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { z } from 'zod'; // Import Zod
+import { z } from 'zod'; 
+import * as Location from 'expo-location';
 
 const LoadingPointScreen = () => {
   const { tripId } = useLocalSearchParams();
@@ -16,26 +17,42 @@ const LoadingPointScreen = () => {
   
 
   const formSchema = z.object({
-    loading_qty: z.string().min(1, "Tonnage loaded is required"),
-    odometer_reading: z.string().min(1, "Odometer reading is required"),
+    loading_qty: z.number().min(1, "Tonnage loaded is required"),
+    odometer_reading: z.number().min(1, "Odometer reading is required"),
     remarks: z.string().min(1, "Provide a remark"),
     truck_picture: z.string().min(1, "Truck picture is required"),
     dataname: z.string().default("driverLoadingPoint"),
   });
 
   const [focusedField, setFocusedField] = useState(null);
-
+  const [location, setLocation] = useState(null);
   const [formData, setFormData] = useState({
     trip_id: tripId,
     loading_qty: '',
     truck_picture: '',
     odometer_reading: '',
     remarks: '',
+    lattitude: "",
+    longitude: "",
     dataname: 'driverLoadingPoint',
   });
+
+   // Request location permission and get the user's location
+   useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission to access location was denied');
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation);
+    })();
+  }, []);
   
   const [image, setImage] = useState(null);
-  const [errors, setErrors] = useState({}); // To hold form errors
+  const [errors, setErrors] = useState({}); 
 
   const submitLoadingData = async (data) => {
     const userId = await AsyncStorage.getItem("user_id");
@@ -49,17 +66,23 @@ const LoadingPointScreen = () => {
 
   const mutation = useMutation({
     mutationFn: submitLoadingData,
-    onSuccess: () => {
-      Alert.alert("Success", "Loading point data submitted");
-      // Navigate or perform other success actions here
-      queryClient.invalidateQueries("TripInfoForDriver"); 
-      queryClient.invalidateQueries("inProgressTripsForDriver");
-      router.push(`/screens/truckDriver?tab=inProgress`);
+    onSuccess: (response) => {
+      console.log("fueling required response",response);
       
+      // Check if fueling is 1, then navigate to another page
+      if (response.fueling === 1) {
+        router.push(`/screens/truckDriver/getFuel/${tripId}`); 
+      } else {
+        Alert.alert("Success", "Loading point data submitted");
+        queryClient.invalidateQueries("TripInfoForDriver"); 
+        queryClient.invalidateQueries("inProgressTripsForDriver");
+        router.push(`/screens/truckDriver?tab=inProgress`);
+      }
     },
     onError: (error) => {
-      const errorMessage = error.response?.data?.message || "An unknown error occurred";
+      const errorMessage = error.response?.data?.message || "Request Failed, Try Again";
       Alert.alert("Error", `${errorMessage}`);
+     
     },
   });
 
@@ -83,21 +106,38 @@ const LoadingPointScreen = () => {
   };
 
   const handleSubmit = () => {
-    // Perform Zod validation
-    const validation = formSchema.safeParse(formData);
-    if (!validation.success) {
-      const fieldErrors = {};
-      validation.error.errors.forEach((err) => {
-        fieldErrors[err.path[0]] = err.message;
-      });
-      setErrors(fieldErrors);
-      return;
+    if (location) {
+      // Ensure that latitude and longitude are updated before validation and mutation
+      setFormData(prevData => ({
+        ...prevData,
+        lattitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      }));
+  
+      // After updating formData, validate and submit the form
+      const updatedFormData = {
+        ...formData,
+        lattitude: `${location.coords.latitude}`,
+        longitude: `${location.coords.longitude}`,
+      };
+  
+      // Perform Zod validation
+      const validation = formSchema.safeParse(updatedFormData);
+      if (!validation.success) {
+        const fieldErrors = {};
+        validation.error.errors.forEach((err) => {
+          fieldErrors[err.path[0]] = err.message;
+        });
+        setErrors(fieldErrors);
+        return;
+      }
+  
+      setErrors({}); // Clear previous errors
+      mutation.mutate(updatedFormData); // Use the updated form data with location
+    } else {
+      Alert.alert('Location not available', 'Please enable location services');
     }
-
-    setErrors({}); // Clear previous errors
-    mutation.mutate(formData);
   };
-
   return (
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
       {[

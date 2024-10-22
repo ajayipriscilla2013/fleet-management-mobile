@@ -48,10 +48,11 @@ const OffloadingPointScreen = () => {
     onError: (error) => {
       // Check if the error response contains a message
       const errorMessage =
-        error.response?.data?.message || "An unknown error occurred";
+        error.response?.data?.message || "Request Failed, Try Again";
 
       console.error("Error submitting data:", error);
       Alert.alert("Error", `${errorMessage}`);
+     
     },
   });
 

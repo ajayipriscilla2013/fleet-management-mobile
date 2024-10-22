@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "MyUniversallyStyledApp",
+    "name": "Charissatics",
     "slug": "MyUniversallyStyledApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -26,7 +26,7 @@
         "NSLocationWhenInUseUsageDescription": "This app requires access to your location when the app is in use.",
         "NSLocationAlwaysUsageDescription": "This app requires access to your location at all times."
       },
-      "bundleIdentifier": "com.treasurepraise.MyUniversallyStyledApp"
+      "bundleIdentifier": "com.treasurepraise.Charissatics"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
         "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
-      "package": "com.treasurepraise.MyUniversallyStyledApp",
+      "package": "com.treasurepraise.Charissatics",
       "permissions": [
         "INTERNET",
         "READ_EXTERNAL_STORAGE",
@@ -56,7 +56,7 @@
     "expo-image-picker",
     {
       "photosPermission": "Select and upload images.",
-      "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
+      "cameraPermission": "Allow Charissatics to access your camera."
     }
   ],
   [
@@ -65,6 +65,12 @@
       "android": {
         "usesCleartextTraffic": true
       }
+    }
+  ],
+  [
+    "expo-camera",
+    {
+      "cameraPermission": "Allow Charissatics to access your camera."
     }
   ]
 ],

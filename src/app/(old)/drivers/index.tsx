@@ -12,13 +12,49 @@ import API from "@/src/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { getDrivers } from "@/src/services/other";
 
+const SkeletonLoader = () => {
+  const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
+
+  const renderSkeletonItem = () => (
+    <View className="bg-white rounded-lg border border-[#F0F1F1] py-6 px-4 flex-row items-center mb-4">
+      <View className="mr-5 h-[51px] w-[51px] rounded-full bg-[#e0e0e0] animate-pulse" />
+      <View className="flex justify-between flex-1 flex-row">
+        <View>
+          <View className="bg-[#e0e0e0] w-[100px] h-[16px] rounded-sm mb-2 animate-pulse" />
+          <View className="flex-row gap-2">
+            <View className="flex-row items-center">
+              <View className="bg-[#e0e0e0] w-[80px] h-[12px] rounded-sm animate-pulse" />
+            </View>
+            <View className="flex-row items-center">
+              <View className="bg-[#e0e0e0] w-[80px] h-[12px] rounded-sm animate-pulse" />
+            </View>
+          </View>
+        </View>
+      </View>
+      <View className="w-5 h-5 bg-[#e0e0e0] rounded-full animate-pulse" />
+    </View>
+  );
+
+  return (
+    <SafeAreaView className="flex-1 items-center bg-[#F9F9F9] w-[100%] mx-auto">
+      <View className="w-full flex-1 bg-white p-4 rounded-xl">
+        <FlatList
+          data={skeletonItems}
+          renderItem={renderSkeletonItem}
+          keyExtractor={(item) => `skeleton-${item}`}
+        />
+      </View>
+    </SafeAreaView>
+  );
+};
+
 const Drivers = () => {
   const router = useRouter();
   const handlePress = (path) => {
     router.push(path);
   };
 
-  const {data:drivers}= useQuery({
+  const {data:drivers, isLoading}= useQuery({
     queryKey:['drivers'],
     queryFn:getDrivers
   })
@@ -59,12 +95,17 @@ const Drivers = () => {
   return (
     <SafeAreaView className="flex-1 items-center bg-[#F9F9F9]  w-[100%] mx-auto">
       <View className="w-full  flex-1 bg-white p-4 rounded-xl">
-        <FlatList
-        className="bg-white"
-          data={drivers}
-          renderItem={renderDrivers}
-          keyExtractor={(item) => item.id}
-        />
+      {isLoading ? (
+          <SkeletonLoader />
+        ) : (
+          <FlatList
+            className="bg-white"
+            data={drivers}
+            renderItem={renderDrivers}
+            keyExtractor={(item) => item.id}
+          />
+        )}
+    
       </View>
     </SafeAreaView>
   );

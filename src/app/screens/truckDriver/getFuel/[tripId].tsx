@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import Camera from "@/assets/svgs/Camera.svg";
@@ -25,6 +25,8 @@ const fuelEntrySchema = z.object({
 const GetFuelScreen = () => {
   const { tripId } = useLocalSearchParams();
   console.log("tripid for fuel",tripId);
+
+  const queryClient = useQueryClient();
   
   const router = useRouter();
   const [errors,setErrors]= useState({})
@@ -71,12 +73,16 @@ const GetFuelScreen = () => {
       console.log('Fuel data submitted successfully');
       Alert.alert("Success","Fuel data submitted successfully")
       // Navigate to next screen or show success message
-      router.push(`/screens/truckDriver/${tripId}`);
+      // router.push(`/screens/truckDriver/${tripId}`);
+      queryClient.invalidateQueries("TripInfoForDriver"); 
+        queryClient.invalidateQueries("inProgressTripsForDriver");
+      router.push(`/screens/truckDriver?tab=inProgress/${tripId}`);
     },
     onError: (error) => {
-      const errorMessage = error.response?.data?.message || "An unknown error occurred";
+      const errorMessage = error.response?.data?.message || "Request failed, Try Again";
      console.error('Error submitting data:', error);
      Alert.alert("Error", `${errorMessage}`);
+    
     },
   });
 

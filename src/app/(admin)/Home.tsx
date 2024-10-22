@@ -73,7 +73,106 @@ const Home = () => {
     const fallbackTruckImage = "https://images.pexels.com/photos/188679/pexels-photo-188679.jpeg?auto=compress&cs=tinysrgb&w=800";
     const fallbackVendorImage = "https://images.pexels.com/photos/18335589/pexels-photo-18335589/free-photo-of-view-of-a-petrol-station-at-sunset.jpeg?auto=compress&cs=tinysrgb&w=800";
 
- 
+    const SkeletonLoader = ({ width, height, borderRadius = 4 }) => {
+      return (
+        <View
+        className="animate-pulse"
+          style={{
+            width,
+            height,
+            borderRadius,
+            backgroundColor: '#e0e0e0', // light gray color for skeleton
+            marginBottom: 8,
+          }}
+        />
+      );
+    };
+
+    const renderVendorSkeleton = () => (
+      <View className="flex flex-row mt-2">
+         <View className="mr-4">
+        <SkeletonLoader width={298} height={210} borderRadius={8} />
+        <SkeletonLoader width={150} height={20} />
+        <View className="flex flex-row items-center gap-1">
+          <SkeletonLoader width={100} height={15} />
+        </View>
+        <View className="flex-row items-center gap-2">
+          <SkeletonLoader width={80} height={15} />
+          <SkeletonLoader width={80} height={15} />
+        </View>
+      </View>
+
+      <View className="mr-4">
+        <SkeletonLoader width={298} height={210} borderRadius={8} />
+        <SkeletonLoader width={150} height={20} />
+        <View className="flex flex-row items-center gap-1">
+          <SkeletonLoader width={100} height={15} />
+        </View>
+        <View className="flex-row items-center gap-2">
+          <SkeletonLoader width={80} height={15} />
+          <SkeletonLoader width={80} height={15} />
+        </View>
+      </View>
+      </View>
+     
+    );
+
+    const renderDriverSkeleton = () => (
+      <View className="flex-row mt-2">
+        <View className="items-center mr-4">
+        <SkeletonLoader width={51} height={51} borderRadius={25} />
+        <SkeletonLoader width={80} height={15} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={50} height={10} />
+          <SkeletonLoader width={50} height={10} />
+        </View>
+      </View>
+
+      <View className="items-center mr-4">
+        <SkeletonLoader width={51} height={51} borderRadius={25} />
+        <SkeletonLoader width={80} height={15} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={50} height={10} />
+          <SkeletonLoader width={50} height={10} />
+        </View>
+      </View>
+
+      <View className="items-center mr-4">
+        <SkeletonLoader width={51} height={51} borderRadius={25} />
+        <SkeletonLoader width={80} height={15} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={50} height={10} />
+          <SkeletonLoader width={50} height={10} />
+        </View>
+      </View>
+      </View>
+      
+    );
+
+    const renderTruckSkeleton = () => (
+      <View className="flex-row mt-2">
+        <View className="mr-4">
+        <SkeletonLoader width={298} height={210} borderRadius={8} />
+        <SkeletonLoader width={150} height={20} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={100} height={15} />
+          <SkeletonLoader width={80} height={15} />
+        </View>
+      </View>
+
+      <View className="mr-4">
+        <SkeletonLoader width={298} height={210} borderRadius={8} />
+        <SkeletonLoader width={150} height={20} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={100} height={15} />
+          <SkeletonLoader width={80} height={15} />
+        </View>
+      </View>
+      </View>
+      
+    );
+
+    
 
   const renderVendorItem = ({ item }) => (
     <View className="mr-4">
@@ -142,6 +241,61 @@ const Home = () => {
     </View>
   );
 
+  const renderVendorsContent=()=>{
+    if(isLoadingVendors){
+      return(
+        renderVendorSkeleton()
+      )
+    }
+    return (
+      <FlatList
+      horizontal
+      data={vendorsData}
+      renderItem={renderVendorItem}
+      keyExtractor={(item) => item.id.toString()}
+      showsHorizontalScrollIndicator={false}
+      className="mt-4"
+    />
+    )
+  }
+
+  const renderDriversContent =()=>{
+    if(isLoadingDrivers){
+      return(
+        renderDriverSkeleton()
+      )
+    }
+    return(
+      <FlatList
+      horizontal
+      data={driversData}
+      renderItem={renderDriverItem}
+      keyExtractor={(item) => item.id.toString()}
+      showsHorizontalScrollIndicator={false}
+      className="mt-4"
+    />
+    )
+  }
+
+  const renderTrucksContent =()=>{
+    if(isLoadingTrucks){
+      return (
+        renderTruckSkeleton()
+      )
+    }
+    return(
+      <FlatList
+            horizontal
+            data={trucksData}
+            renderItem={renderTruckItem}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+            className="mt-4"
+          />
+    )
+  }
+
+
   return (
     // <SafeAreaView className="flex-1 bg-[#F9F9F9]">
 
@@ -186,14 +340,8 @@ const Home = () => {
               </View>
             </TouchableOpacity>
           </View>
-          <FlatList
-            horizontal
-            data={vendorsData}
-            renderItem={renderVendorItem}
-            keyExtractor={(item) => item.id.toString()}
-            showsHorizontalScrollIndicator={false}
-            className="mt-4"
-          />
+         {renderVendorsContent()}
+  
         </View>
 
         {/* Drivers */}
@@ -209,14 +357,8 @@ const Home = () => {
               </View>
             </TouchableOpacity>
           </View>
-          <FlatList
-            horizontal
-            data={driversData}
-            renderItem={renderDriverItem}
-            keyExtractor={(item) => item.id.toString()}
-            showsHorizontalScrollIndicator={false}
-            className="mt-4"
-          />
+         {renderDriversContent()}
+        
         </View>
 
         {/* Trucks */}
@@ -232,14 +374,7 @@ const Home = () => {
               </View>
             </TouchableOpacity>
           </View>
-          <FlatList
-            horizontal
-            data={trucksData}
-            renderItem={renderTruckItem}
-            keyExtractor={(item) => item.id.toString()}
-            showsHorizontalScrollIndicator={false}
-            className="mt-4"
-          />
+          {renderTrucksContent()}
         </View>
       </ScrollView>
     </View>

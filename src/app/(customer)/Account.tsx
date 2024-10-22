@@ -97,8 +97,10 @@ const Account = () => {
       <TouchableOpacity className="flex-row items-center py-4 border border-[#F6F6F6] rounded-lg mb-2 px-4"
       onPress={() =>{
         queryClient.invalidateQueries();
+        router.replace("/(auth)/signin")
         logout()
-        handlePress("/(auth)/signin")}
+        // handlePress("/(auth)/signin")
+      }
       }
       >
       <View className="rounded-full bg-[#FFEBE5] p-2 ">

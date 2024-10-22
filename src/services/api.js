@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 
 
 const API = axios.create({
@@ -91,35 +91,39 @@ API.interceptors.response.use(
   }
 );
 
-// Add a response interceptor to handle errors globally
-API.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    // const router = useRouter();
-    
-    if (error.response) {
-      // Check if the error status is 401
-      if (error.response.status === 401) {
-        console.error("Unauthorized. Redirecting to sign-in...");
-        
-        // Clear stored tokens
-        if (Platform.OS === "web") {
-          localStorage.removeItem("jwtToken");
-          localStorage.removeItem("user_id");
-        } else {
-          await AsyncStorage.removeItem("jwtToken");
-          await AsyncStorage.removeItem("user_id");
-        }
+// API.interceptors.response.use(
+//   (response) => response, // Return response if successful
+//   async (error) => {
+//     const { response, config } = error;
 
-        // Redirect to the sign-in page
-        router.push("/(auth)/signin");
-      }
-    }
+//     // Check if the response has a 401 status code (Unauthorized)
+//     if (response && response.status === 401) {
+//       // Ensure this check is not for the login request
+//       if (config.url !== "auth/auth.php") {
+//         console.error("Token expired or unauthorized access. Redirecting to login...");
 
-    // Reject the error if it's not 401 or another case needs handling
-    return Promise.reject(error);
-  }
-);
+//         // Clear the token from storage
+//         if (Platform.OS === "web") {
+//           localStorage.removeItem("jwtToken");
+//           localStorage.removeItem("user_id");
+//         } else {
+//           await AsyncStorage.removeItem("jwtToken");
+//           await AsyncStorage.removeItem("user_id");
+//         }
+
+//         // Redirect to login page
+//         router.replace("/(auth)/signin");  // Use replace to remove the current page from history
+//       }
+      
+//       return Promise.reject(error); // Optionally reject the promise to stop further execution
+//     }
+
+//     // Handle other errors
+//     console.error("Response error", error);
+//     return Promise.reject(error);
+//   }
+// );
+
 
 
 export default API;
