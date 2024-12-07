@@ -121,10 +121,10 @@ const TripDetailsScreen = () => {
                   value: tripsDetailsData?.status,
                   color: "text-yellow-600",
                 },
-                { label: "Start Date", value: "Sep 1, 2024" },
+                { label: "Start Date", value: dayjs(tripsDetailsData?.created_date).format("LL") },
                 {
-                  label: "Delivery Time",
-                  value: dayjs(tripsDetailsData?.delivery_time).format("LL"),
+                  label: "End Date",
+                  value: dayjs(tripsDetailsData?.end_date).format("LL"),
                 },
                 {
                   label: "Loading Point Details submitted",

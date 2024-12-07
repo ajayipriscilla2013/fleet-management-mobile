@@ -42,7 +42,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver, setIsFuelling }) => {
     queryKey: ["driversforAssigning"],
     queryFn: async () => {
       const response = await API.post("trip/trip.php", {
-        dataname: "getTruckDrivers",
+        dataname: "getUnassignedDrivers",
       });
       return response.data.data;
     },

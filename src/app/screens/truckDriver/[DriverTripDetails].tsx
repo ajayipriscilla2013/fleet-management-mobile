@@ -104,29 +104,59 @@ const TripDetailsScreen = () => {
 
   const renderActionButton = () => {
     switch (tripInfo?.status) {
-      case "initiated":
-        return (
-          <>
-          <TouchableOpacity
-            className="bg-[#394F91] rounded-2xl p-4 mt-6"
-            onPress={() =>
-              handlePress(`/screens/truckDriver/confirmLoading/${tripId}`)
-            }
-          >
-            <Text className="text-white text-center font-semibold">
-              Accept Trip
-            </Text>
-          </TouchableOpacity>
-          {/* <TouchableOpacity
+      // case "initiated":
+      //   return (
+      //     <>
+      //     <TouchableOpacity
+      //       className="bg-[#394F91] rounded-2xl p-4 mt-6"
+      //       onPress={() =>
+      //         handlePress(`/screens/truckDriver/confirmLoading/${tripId}`)
+      //       }
+      //     >
+      //       <Text className="text-white text-center font-semibold">
+      //         Accept Trip
+      //       </Text>
+      //     </TouchableOpacity>
+      //     </>
+      //   )
+
+        case "initiated":
+
+          if (tripInfo.fuelling === 1 && tripInfo.fueled=== 0) {
+            return (
+              <>
+              <TouchableOpacity
+               className="bg-[#394F91] rounded-2xl p-4 mt-6"
+              onPress={() =>
+                   handlePress(`/screens/truckDriver/confirmLoading/${tripId}`)
+                 }
+             >
+               <Text className="text-white text-center font-semibold">
+                  Accept Trip
+               </Text>
+             </TouchableOpacity>
+              <TouchableOpacity
               className="bg-white border border-gray-300 rounded-2xl p-4 mt-6"
               onPress={() => handlePress(`/screens/truckDriver/getFuel/${tripId}`)}
             >
               <Text className="text-black text-center font-semibold">
                 Get Fuel
               </Text>
-            </TouchableOpacity> */}
-          </>
-        )
+            </TouchableOpacity> 
+              </>
+            );
+          } else {
+            return <TouchableOpacity
+               className="bg-[#394F91] rounded-2xl p-4 mt-6"
+              onPress={() =>
+                   handlePress(`/screens/truckDriver/confirmLoading/${tripId}`)
+                 }
+             >
+               <Text className="text-white text-center font-semibold">
+                  Accept Trip
+               </Text>
+             </TouchableOpacity>;}
+
       case "in_progress":
         if (tripInfo.driver_loading_confirmed === 1 && tripInfo.driver_offloading_confirmed=== 1) {
           return (
@@ -154,6 +184,8 @@ const TripDetailsScreen = () => {
               </Text>
             </TouchableOpacity>
           )};
+
+          
        default:
         return null;
     }
@@ -222,7 +254,7 @@ const TripDetailsScreen = () => {
                   value: tripInfo?.status,
                   color: "text-yellow-600",
                 },
-                { label: "Start Date", value: dayjs(tripInfo?.start_date).format("LL") },
+                { label: "Start Date", value: dayjs(tripInfo?.created_date).format("LL") },
                 {
                   label: "End Date",
                   value: dayjs(tripInfo?.end_date).format("LL"),

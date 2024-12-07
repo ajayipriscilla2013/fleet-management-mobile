@@ -129,11 +129,11 @@ const CreateTripForm = () => {
     onError: (error) => {
       // Check if the error response contains a message
       const errorMessage =
-        error.response?.data?.message || "An unknown error occurred";
+        error.response?.data?.message || "Request Failed, Try Again";
 
       console.error("Error submitting data:", errorMessage);
-      // Alert.alert("Error", `${errorMessage}`);
-      Alert.alert("Error", "Request Failed, Try Again");
+      Alert.alert("Error", `${errorMessage}`);
+  
     },
   });
 
@@ -389,7 +389,7 @@ const CreateTripForm = () => {
             )}
           </View>
           <TextInput
-            placeholder="Loading Quantity"
+            placeholder="Loading Quantity (Tons)"
             keyboardType="numeric"
             value={formData.loading_qty}
             onChangeText={(text) =>

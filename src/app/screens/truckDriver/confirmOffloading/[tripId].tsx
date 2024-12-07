@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,13 +10,14 @@ import { z } from 'zod';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import * as Location from 'expo-location';
+import ZoomedCameraComponent from '@/components/ZoomedCamera';
 
 // Define the validation schema using Zod
 const offloadingSchema = z.object({
   offloading_qty: z.string().nonempty("Tonnage Offloaded is required").regex(/^[0-9]*$/, "Must be a valid number"),
   waybill_no: z.string().nonempty("Waybill Number is required"),
   odometer_reading: z.string().nonempty("Odometer Reading is required").regex(/^[0-9]*$/, "Must be a valid number"),
-  remarks: z.string().optional(),
+  remarks: z.string().min(1,"Remarks is Required"),
   product_picture: z.string().nonempty("Product picture is required"),
   delivery_location: z.string().nonempty("Delivery location required"),
 });
@@ -28,6 +29,8 @@ const OffloadingPointScreen = () => {
 
   const [focusedField, setFocusedField] = useState(null);
   const [location, setLocation] = useState(null);
+const [cameraVisible, setCameraVisible] = useState(false);
+  const [currentField, setCurrentField] = useState(null);
   const [formData, setFormData] = useState({
     trip_id: tripId,
     offloading_qty: '',
@@ -59,12 +62,7 @@ const OffloadingPointScreen = () => {
     })();
   }, []);
   
-  const [images, setImages] = useState({
-    product_picture: null,
-    odometer_picture: null,
-    waybill_picture: null
-  });
-  
+
   const [formErrors, setFormErrors] = useState({});
   const [showDeliveryTimePicker, setShowDeliveryTimePicker] = useState(false);
 
@@ -114,19 +112,16 @@ const OffloadingPointScreen = () => {
     setFormData(prevData => ({ ...prevData, [name]: value }));
   };
 
-  const handleImagePick = async (imageType) => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
-
-    if (!result.canceled) {
-      setImages(prevImages => ({ ...prevImages, [imageType]: result.assets[0].uri }));
-      setFormData(prevData => ({ ...prevData, [imageType]: result.assets[0].base64 }));
+  const handleImageCapture = (image) => {
+    if (currentField) {
+      setFormData((prevData) => ({ ...prevData, [currentField]: image.uri }));
+      setCameraVisible(false);
     }
+  };
+
+  const openCameraForField = (field) => {
+    setCurrentField(field);
+    setCameraVisible(true);
   };
 
   const handleDeliveryTimeChange = (event, selectedDate) => {
@@ -171,14 +166,18 @@ const OffloadingPointScreen = () => {
   return (
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
       {[
-        { label: 'Delivery Location', name: 'delivery_location', placeholder: 'Loading...', error: formErrors.delivery_location, editable: false },
-        { label: 'Tonnage Offloaded', name: 'offloading_qty', placeholder: 'Enter tonnage offloaded', error: formErrors.offloading_qty },
-        { label: 'Waybill Number', name: 'waybill_no', placeholder: 'Enter waybill number', error: formErrors.waybill_no },
-        { label: 'Odometer Reading', name: 'odometer_reading', placeholder: 'Enter odometer reading', error: formErrors.odometer_reading },
+        { label: 'Delivery Location', name: 'delivery_location', placeholder: 'Loading...', error: formErrors.delivery_location, editable: false,numeric:true },
+        { label: 'Tonnage Offloaded', name: 'offloading_qty', placeholder: 'Enter tonnage offloaded', error: formErrors.offloading_qty,numeric:true },
+        { label: 'Waybill Number', name: 'waybill_no', placeholder: 'Enter waybill number', error: formErrors.waybill_no ,},
+        { label: 'Odometer Reading', name: 'odometer_reading', placeholder: 'Enter odometer reading', error: formErrors.odometer_reading,numeric:true },
         { label: 'Remarks', name: 'remarks', placeholder: 'Enter remarks', error: formErrors.remarks },
       ].map((item, index) => (
         <View key={index} className="mb-4">
+           <View className='flex-row justify-between'>
+            
           <Text className="text-gray-600 mb-[10px]">{item.label}</Text>
+          {item.error && <Text className="text-red-500 text-sm">{item.error}</Text>}
+          </View>
           <TextInput
             onFocus={() => setFocusedField(item.name)}
             onBlur={() => setFocusedField(null)}
@@ -191,15 +190,16 @@ const OffloadingPointScreen = () => {
             value={formData[item.name]}
             onChangeText={(text) => handleInputChange(item.name, text)}
             editable={item.editable !== false}
+            keyboardType={item.numeric?"numeric":"default"}
           />
-          {item.error && <Text className="text-red-500 text-sm">{item.error}</Text>}
+         
         </View>
       ))}
 
       <View className="mb-4">
         <Text className="text-gray-600 mb-[10px]">Delivered On</Text>
-        <TouchableOpacity
-          // onPress={() => setShowDeliveryTimePicker(true)}
+         <TouchableOpacity
+          onPress={() => setShowDeliveryTimePicker(true)}
           className={`border bg-white rounded-md p-2 h-[60px] justify-center ${
             focusedField === 'delivery_time'
               ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
@@ -221,19 +221,22 @@ const OffloadingPointScreen = () => {
         />
       )}
 
-<Text className="text-red-500 text-sm mt-4 bg-[#FFE8E8] py-3 px-2 rounded-lg">
+ <Text className="text-red-500 text-sm mt-4 bg-[#FFE8E8] py-3 px-2 rounded-lg">
         Note: Capture the following information: Current Odometer reading at fuelling point, Picture of the Truck Dashboard (Before and after fuelling), The fuel pump (Before and after fueling) and Picture of Truck Driver and Fuel Attendant together.
       </Text>
 
-      {['product_picture', 'waybill_picture', 'odometer_picture'].map((imageType, index) => (
+       {[
+        { label: 'Product Picture', field: 'product_picture' },
+        { label: 'Odometer Picture', field: 'odometer_picture' },
+        { label: 'Waybill Picture', field: 'waybill_picture' },
+      ].map((item, index) => (
         <>
-         <Text className="text-gray-600 mb-[10px] capitalize">Upload {imageType.replace('_', ' ')}</Text>
+         <Text className="text-gray-600 mb-[10px] capitalize">Upload {item.label}</Text>
         <TouchableOpacity key={index} className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mb-4"
-          onPress={() => handleImagePick(imageType)}
-        >
-          {images[imageType] ? (
+          onPress={() => openCameraForField(item.field)}>
+          {formData[item.field] ? (
             <Image
-              source={{ uri: images[imageType] }}
+              source={{ uri: formData[item.field] }}
               style={{ width: 100, height: 100, borderRadius: 10 }}
             />
           ) : (
@@ -242,18 +245,37 @@ const OffloadingPointScreen = () => {
                   <Camera className="w-6 h-6 text-blue-600 mr-2" />
                 </View>
                 <Text className="font-semibold">Take a Snap</Text>
-              <Text className="text-gray-500">Upload {imageType.replace('_', ' ')}</Text>
+              <Text className="text-gray-500">Upload {item.label}</Text>
             </View>
           )}
         </TouchableOpacity>
         </>
       ))}
 
-      <TouchableOpacity onPress={handleSubmit} className="bg-[#394F91] h-[60px] rounded-md flex items-center justify-center">
-        <Text className="text-white text-lg font-semibold">Submit</Text>
+    
+
+      <TouchableOpacity 
+        className="bg-[#394F91]  p-4 mt-6 mb-6 h-[60px] rounded-md flex items-center justify-center" 
+        onPress={handleSubmit}
+        disabled={mutation.isPending}
+      >
+        <Text className="text-white text-center font-semibold">
+          {mutation.isPending ? 'Submitting...' : 'Confirm Offloading Details'}
+        </Text>
       </TouchableOpacity>
+
+
+      <Modal visible={cameraVisible} animationType="slide">
+        <ZoomedCameraComponent
+          onImageCaptured={handleImageCapture}
+          onClose={() => setCameraVisible(false)}
+        />
+      </Modal>
     </ScrollView>
   );
 };
 
 export default OffloadingPointScreen;
+
+
+

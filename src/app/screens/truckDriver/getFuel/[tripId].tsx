@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -8,7 +8,7 @@ import Camera from "@/assets/svgs/Camera.svg";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '@/src/services/api';
 import { z } from 'zod';
-
+import ZoomedCameraComponent from '@/components/ZoomedCamera';
 
 const fuelEntrySchema = z.object({
   current_location: z.string().nonempty("Current location is required"),
@@ -32,6 +32,8 @@ const GetFuelScreen = () => {
   const [errors,setErrors]= useState({})
   const [imageErrors, setImageErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
+  const [cameraVisible, setCameraVisible] = useState(false);
+  const [currentField, setCurrentField] = useState(null);
   const [formData, setFormData] = useState({
     trip_id: tripId,
     current_location: '',
@@ -51,12 +53,7 @@ const GetFuelScreen = () => {
     dataname: 'makeFuelEntry',
    
   });
-  const [images, setImages] = useState({
-    attendant_picture: null,
-    truck_tank_picture: null,
-    gauge_pump_picture: null,
-    driver_picture: null,
-  });
+
 
   const submitFuelData = async (data) => {
     const userId= await AsyncStorage.getItem("user_id")
@@ -90,20 +87,17 @@ const GetFuelScreen = () => {
     setFormData(prevData => ({ ...prevData, [name]: value }));
   };
 
-  const handleImagePick = async (imageType) => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
 
-    if (!result.canceled) {
-      setImages(prevImages => ({ ...prevImages, [imageType]: result.assets[0].uri }));
-      setFormData(prevData => ({ ...prevData, [imageType]: result.assets[0].base64 }));
-      setImageErrors(prevErrors => ({ ...prevErrors, [imageType]: '' }));  // Clear error on image pick
+  const handleImageCapture = (image) => {
+    if (currentField) {
+      setFormData((prevData) => ({ ...prevData, [currentField]: image.uri }));
+      setCameraVisible(false);
     }
+  };
+
+  const openCameraForField = (field) => {
+    setCurrentField(field);
+    setCameraVisible(true);
   };
 
   const calculateTotalAmount = () => {
@@ -120,17 +114,7 @@ const GetFuelScreen = () => {
   const handleSubmit = () => {
     
     try {
-      const missingImages = {};
-    Object.keys(images).forEach((key) => {
-      if (!images[key]) {
-        missingImages[key] = `${key.replace('_', ' ')} is required`;
-      }
-    });
-
-    if (Object.keys(missingImages).length > 0) {
-      setImageErrors(missingImages);
-      // return;
-    }
+    
 
       const parsedData = fuelEntrySchema.parse({
         ...formData,
@@ -143,15 +127,13 @@ const GetFuelScreen = () => {
         pump_reading_after: parseFloat(formData.pump_reading_after),
       });
  
-      mutation.mutate(formData);
+      mutation.mutate(parsedData);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Set form errors based on Zod validation
-        const errors = {};
-        error.errors.forEach(err => {
-          errors[err.path[0]] = err.message;
-        });
-        setErrors(errors);
+        const errorMap = error.flatten().fieldErrors;
+        setErrors(Object.fromEntries(
+          Object.entries(errorMap).map(([key, value]) => [key, value[0]])
+        ));
       }
     }
   };
@@ -160,13 +142,13 @@ const GetFuelScreen = () => {
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
       {[
         { label: 'Current Location', name: 'current_location', placeholder: 'Enter Current Location' },
-        { label: 'Fuel Price Per Litre', name: 'amount_per_liter', placeholder: 'Enter fuel price per litre' },
-        { label: 'Total Litres', name: 'liters_filled', placeholder: 'Enter total litres' },
-        { label: 'Total Fuel Price', name: 'total_amount', placeholder: 'Total fuel price', editable: false },
-        { label: 'Odometer Reading Before', name: 'odometer_before', placeholder: 'Enter odometer before' },
-        { label: 'Odometer Reading After', name: 'odometer_after', placeholder: 'Enter odometer after' },
-        { label: 'Pump Reading Before', name: 'pump_reading_before', placeholder: 'Enter pump reading before' },
-        { label: 'Pump Reading After', name: 'pump_reading_after', placeholder: 'Enter pump reading after' },
+        { label: 'Fuel Price Per Litre', name: 'amount_per_liter', placeholder: 'Enter fuel price per litre',  numeric:true},
+        { label: 'Total Litres', name: 'liters_filled', placeholder: 'Enter total litres', numeric:true },
+        { label: 'Total Fuel Price', name: 'total_amount', placeholder: 'Total fuel price', editable: false , numeric:true},
+        { label: 'Odometer Reading Before', name: 'odometer_before', placeholder: 'Enter odometer before', numeric:true },
+        { label: 'Odometer Reading After', name: 'odometer_after', placeholder: 'Enter odometer after' , numeric:true},
+        { label: 'Pump Reading Before', name: 'pump_reading_before', placeholder: 'Enter pump reading before', numeric:true },
+        { label: 'Pump Reading After', name: 'pump_reading_after', placeholder: 'Enter pump reading after', numeric:true },
         { label: 'Name of Fuel Attendant', name: 'attendant_name', placeholder: 'Enter name of fuel attendant' },
        
        
@@ -192,6 +174,7 @@ const GetFuelScreen = () => {
             value={formData[item.name]}
             onChangeText={(text) => handleInputChange(item.name, text)}
             editable={item.editable !== false}
+            keyboardType={item.numeric?"numeric":"default"}
           />
         </View>
       ))}
@@ -202,11 +185,18 @@ const GetFuelScreen = () => {
       {/* {errors[imageType] && (
       <Text className="text-red-500 mt-2">{errors[imageType]}</Text>
     )} */}
-      {['attendant_picture', 'truck_tank_picture', 'gauge_pump_picture', 'driver_picture'].map((imageType) => (
-        <TouchableOpacity key={imageType} className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mt-4" onPress={() => handleImagePick(imageType)}>
+      {[
+        {label:"Attendant Picture",field:"attendant_picture"},
+        {label:"Truck Tank Picture",field:"truck_tank_picture"},
+        {label:"Gauge Pump Picture",field:"gauge_pump_picture"},
+        {label:"Driver Picture",field:"driver_picture"},
+      ].map((item,index) => (
+        <>
+        <Text className="text-gray-600 mb-[10px]  capitalize">Upload {item.label}</Text>
+        <TouchableOpacity key={index} className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mb-4" onPress={() => openCameraForField(item.field)}>
           <View className='flex flex-col items-center'>
-            {images[imageType] ? (
-              <Image source={{ uri: images[imageType] }} style={{ width: 100, height: 100, borderRadius: 10 }} />
+            {formData[item.field] ? (
+              <Image source={{ uri: formData[item.field] }} style={{ width: 100, height: 100, borderRadius: 10 }} />
             ) : (
               <>
                 <View className='h-[35px] w-[35px] items-center justify-center p-2 bg-[#394F91] rounded-full'>
@@ -214,12 +204,13 @@ const GetFuelScreen = () => {
                 </View>
                 <Text className="font-semibold">Take a Snap</Text>
                 <Text className="text-center text-gray-500 text-sm mt-2">
-                  {imageType.replace('_', ' ').charAt(0).toUpperCase() + imageType.replace('_', ' ').slice(1)}
+                  {item.label}
                 </Text>
               </>
             )}
           </View>
         </TouchableOpacity>
+        </>
       ))}
 
       <TouchableOpacity 
@@ -231,6 +222,13 @@ const GetFuelScreen = () => {
           {mutation.isPending ? 'Submitting...' : 'Get Fuel'}
         </Text>
       </TouchableOpacity>
+
+      <Modal visible={cameraVisible} animationType="slide">
+        <ZoomedCameraComponent
+          onImageCaptured={handleImageCapture}
+          onClose={() => setCameraVisible(false)}
+        />
+      </Modal>
     </ScrollView>
   );
 };

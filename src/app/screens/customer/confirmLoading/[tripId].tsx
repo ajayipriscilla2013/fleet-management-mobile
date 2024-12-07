@@ -13,6 +13,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import API from "@/src/services/api";
+import { setErrorMap, z } from "zod";
+
+const loadingPointSchema= z.object({
+  loading_qty:z.number().min(1,"Loading Quantity is required"),
+  remarks:z.string().min(1,"Remark is required")
+})
 
 const LoadingPointScreen = () => {
   const { tripId } = useLocalSearchParams();
@@ -27,6 +33,7 @@ const LoadingPointScreen = () => {
   });
 
   const [focusedField, setFocusedField] = useState(null);
+  const [errors, setErrors] = useState({}); // To hold form errors
 
 
   const submitLoadingData = async (data) => {
@@ -65,18 +72,41 @@ const LoadingPointScreen = () => {
   };
 
   const handleSubmit = () => {
-    mutation.mutate(formData);
+    setErrors({})
+    const updatedFormData = {
+      ...formData,
+      loading_qty: Number(formData.loading_qty), // Convert to number
+    };
+
+    const result = loadingPointSchema.safeParse(updatedFormData);
+    if(!result.success){
+      const fieldErrors={}
+      result.error.errors.forEach((err)=>{
+        fieldErrors[err.path[0]] = err.message
+      })
+      setErrors(fieldErrors)
+      return
+    }
+    mutation.mutate(updatedFormData);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
         {[
-          { label: "Tonnage loaded",name:"loading_qty", value: "Enter tonnage loaded" },
+          { label: "Tonnage loaded",name:"loading_qty", value: "Enter tonnage loaded",numeric:true },
           { label: "Remarks",name:"remarks", placeholder: "Enter Remarks" },
         ].map((item, index) => (
           <View key={index} className="mb-4">
+            <View className="flex-row justify-between">
+
             <Text className="text-gray-600 mb-[10px]">{item.label}</Text>
+            {errors[item.name] && (
+              <Text className="mb-2" style={{ color: "red" }}>
+                {errors[item.name]}
+              </Text>
+            )}
+            </View>
             <TextInput
               // className="shadow-[0px 1px 2px rgba(16,24,40,0.05)] border bg-white  border-[#C4CCF0] rounded-md p-2 h-[60px]"
               onFocus={() => setFocusedField(item.name)}
@@ -89,6 +119,7 @@ const LoadingPointScreen = () => {
               placeholder={item.placeholder}
               value={formData[item.name]}
               onChangeText={(text) => handleInputChange(item.name, text)}
+              keyboardType={item.numeric?"numeric":"default"}
             />
           </View>
         ))}

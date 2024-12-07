@@ -8,7 +8,7 @@ const SkeletonLoader = () => {
   return (
     <View className="flex-1 p-6">
       {/* Skeleton for Truck Image */}
-      <View className="w-full h-48 mb-4 rounded-lg bg-[#e0e0e0]" />
+      <View className="w-full h-48 mb-4 rounded-lg bg-[#e0e0e0] animate-pulse" />
 
       <View className="bg-white rounded-lg p-3">
         {["Name", "Email", "Phone Number"].map((label, index) => (
@@ -18,7 +18,7 @@ const SkeletonLoader = () => {
           >
             <Text className="text-[#A5A6AB]">{label}</Text>
             {/* Skeleton for the values */}
-            <View className="w-[120px] h-[16px] bg-[#e0e0e0] rounded-sm" />
+            <View className="w-[120px] h-[16px] bg-[#e0e0e0] rounded-sm animate-pulse" />
           </View>
         ))}
       </View>
@@ -38,6 +38,17 @@ const TruckDriverInfo = () => {
   if (isLoading) {
     return <SkeletonLoader />;
   }
+
+  if (isError) {
+    return (
+      <>
+    <SkeletonLoader />
+    <Text>{isError}</Text>
+      </>
+    );
+  }
+
+
 
   return (
     <View className="flex-1 p-6">

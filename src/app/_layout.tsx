@@ -59,16 +59,17 @@ function RootLayoutNav() {
   return (
     <AuthProvider >    
     <QueryClientProvider client={queryClient}>
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    {/* <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}> */}
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />;
+        <Stack.Screen name="camera-screen" options={{ headerShown: false }} />;
       
       {/* Default Portal Host (one per app) */}
         {/* <Stack.Screen name="home/dashboard" options={{ headerShown: false }} /> */}
         {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
         {/* <Stack.Screen name="modal" options={{ presentation: "modal" }} /> */}
       </Stack>
-    </ThemeProvider>
+    {/* </ThemeProvider> */}
     </QueryClientProvider>
     </AuthProvider>
   );

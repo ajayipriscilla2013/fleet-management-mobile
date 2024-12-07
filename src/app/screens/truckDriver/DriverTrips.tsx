@@ -119,7 +119,7 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {dayjs(item.start_date).format("LL")} to{" "}
+                {dayjs(item.created_date).format("LL")} to{" "}
                 {dayjs(item.end_date).format("LL")}
               </Text>
             </View>

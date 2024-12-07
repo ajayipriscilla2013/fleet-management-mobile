@@ -12,6 +12,12 @@ import {
   SafeAreaView,
   Alert,
 } from "react-native";
+import { z } from "zod";
+
+const offLoadingPointSchema = z.object({
+  offloading_qty: z.number().min(1, "Loading Quantity is required"),
+  remarks: z.string().min(1, "Remark is required"),
+});
 
 const OffloadingPointScreen = () => {
   const { tripId } = useLocalSearchParams();
@@ -26,6 +32,7 @@ const OffloadingPointScreen = () => {
   });
 
   const [focusedField, setFocusedField] = useState(null);
+  const [errors, setErrors] = useState({}); // To hold form errors
 
   const submitLoadingData = async (data) => {
     const userId = await AsyncStorage.getItem("user_id");
@@ -52,7 +59,6 @@ const OffloadingPointScreen = () => {
 
       console.error("Error submitting data:", error);
       Alert.alert("Error", `${errorMessage}`);
-     
     },
   });
 
@@ -61,7 +67,22 @@ const OffloadingPointScreen = () => {
   };
 
   const handleSubmit = () => {
-    mutation.mutate(formData);
+    setErrors({});
+    const updatedFormData = {
+      ...formData,
+      offloading_qty: Number(formData.offloading_qty), // Convert to number
+    };
+
+    const result = offLoadingPointSchema.safeParse(updatedFormData);
+    if (!result.success) {
+      const fieldErrors = {};
+      result.error.errors.forEach((err) => {
+        fieldErrors[err.path[0]] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+    mutation.mutate(updatedFormData);
   };
 
   return (
@@ -72,18 +93,26 @@ const OffloadingPointScreen = () => {
             label: "Tonnage Offloaded",
             name: "offloading_qty",
             value: "Enter tonnage offloaded",
+            numeric:true
           },
           {
             label: "Remark",
             name: "remarks",
-            value:"Enter Remark",
+            value: "Enter Remark",
             placeholder: "Enter Remark",
             textarea: "true",
           },
         ].map((item, index) => (
           <View key={index} className="mb-4">
-            <Text className="text-gray-600 mb-[10px]">{item.label}</Text>
-            { (
+            <View className="flex-row justify-between">
+              <Text className="text-gray-600 mb-[10px]">{item.label}</Text>
+              {errors[item.name] && (
+                <Text className="mb-2" style={{ color: "red" }}>
+                  {errors[item.name]}
+                </Text>
+              )}
+            </View>
+            {
               <TextInput
                 onFocus={() => setFocusedField(item.name)}
                 onBlur={() => setFocusedField(null)}
@@ -95,8 +124,9 @@ const OffloadingPointScreen = () => {
                 placeholder={item.placeholder}
                 value={formData[item.name]}
                 onChangeText={(text) => handleInputChange(item.name, text)}
+                keyboardType={item.numeric?"numeric":"default"}
               />
-            )}
+            }
           </View>
         ))}
 

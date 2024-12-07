@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as ImagePicker from 'expo-image-picker';
 import Camera from "@/assets/svgs/Camera.svg";
 import API from '@/src/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod'; 
 import * as Location from 'expo-location';
+import { Modal } from 'react-native';
+import ZoomedCameraComponent from '@/components/ZoomedCamera';
+
+
 
 const LoadingPointScreen = () => {
   const { tripId } = useLocalSearchParams();
@@ -24,6 +27,7 @@ const LoadingPointScreen = () => {
     dataname: z.string().default("driverLoadingPoint"),
   });
 
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [location, setLocation] = useState(null);
   const [formData, setFormData] = useState({
@@ -52,6 +56,7 @@ const LoadingPointScreen = () => {
   }, []);
   
   const [image, setImage] = useState(null);
+  
   const [errors, setErrors] = useState({}); 
 
   const submitLoadingData = async (data) => {
@@ -90,19 +95,13 @@ const LoadingPointScreen = () => {
     setFormData(prevData => ({ ...prevData, [name]: value }));
   };
 
-  const handleImagePick = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      setFormData(prevData => ({ ...prevData, truck_picture: result.assets[0].base64 }));
-    }
+ 
+  const handleImageCaptured = (processedImage) => {
+    setImage(processedImage.uri);
+    setFormData(prevData => ({
+      ...prevData,
+      truck_picture: processedImage.base64
+    }));
   };
 
   const handleSubmit = () => {
@@ -117,6 +116,8 @@ const LoadingPointScreen = () => {
       // After updating formData, validate and submit the form
       const updatedFormData = {
         ...formData,
+        loading_qty: Number(formData.loading_qty), // Convert to number
+        odometer_reading: Number(formData.odometer_reading),
         lattitude: `${location.coords.latitude}`,
         longitude: `${location.coords.longitude}`,
       };
@@ -141,9 +142,9 @@ const LoadingPointScreen = () => {
   return (
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
       {[
-        { label: 'Confirm Tonnage loaded', name: 'loading_qty', placeholder: 'Enter tonnage loaded' },
+        { label: 'Confirm Tonnage loaded', name: 'loading_qty', placeholder: 'Enter tonnage loaded',numeric:true },
         { label: 'Remarks', name: 'remarks', placeholder: 'Enter Remarks' },
-        { label: 'Odometer Reading', name: 'odometer_reading', placeholder: 'Enter Odometer Reading' },
+        { label: 'Odometer Reading', name: 'odometer_reading', placeholder: 'Enter Odometer Reading',numeric:true },
       ].map((item, index) => (
         <View key={index} className="mb-4">
           <View className='flex-row justify-between'>
@@ -154,6 +155,7 @@ const LoadingPointScreen = () => {
           )}
           </View>
           <TextInput
+          keyboardType={item.numeric ? "numeric" :"default"}
            onFocus={() => setFocusedField(item.name)}
            onBlur={() => setFocusedField(null)}
            className={`border bg-white rounded-md p-2 h-[60px] ${
@@ -179,7 +181,11 @@ const LoadingPointScreen = () => {
           )}
       </View>
 
-      <TouchableOpacity className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mt-4" onPress={handleImagePick}>
+      <TouchableOpacity 
+        className="flex-row items-center justify-center bg-white border h-[126px] border-gray-300 rounded-md p-4 mt-4" 
+        // onPress={handleImagePick}
+        onPress={() => setIsCameraVisible(true)}
+      >
         <View className='flex flex-col items-center'>
           {image ? (
             <Image source={{ uri: image }} style={{ width: 100, height: 100, borderRadius: 10 }} />
@@ -190,12 +196,28 @@ const LoadingPointScreen = () => {
               </View>
               <Text className="font-semibold">Take a Snap</Text>
               <Text className="text-center text-gray-500 text-sm mt-2">
-                Note: You can take a snap or record a video.
+                Note: You can take a snap or record a videos.
               </Text>
             </>
           )}
         </View>
       </TouchableOpacity>
+
+     
+      <Modal
+        visible={isCameraVisible}
+        animationType="slide"
+        onRequestClose={() => setIsCameraVisible(false)}
+      >
+        <ZoomedCameraComponent 
+          onImageCaptured={handleImageCaptured} 
+          onClose={() => setIsCameraVisible(false)}
+        />
+      </Modal>
+      
+
+  
+
 
       <TouchableOpacity 
         className="bg-[#394F91] rounded-2xl p-4 mt-6" 
@@ -210,4 +232,8 @@ const LoadingPointScreen = () => {
   );
 };
 
+
+
 export default LoadingPointScreen;
+
+

@@ -109,14 +109,13 @@ const TripDetailsScreen = () => {
                 value: `${tripInfo?.status}`,
                 color: "text-yellow-600",
               },
-              // {dayjs(formData.start_date).format("LL")}
               {
                 label: "Start Date",
-                value: dayjs(tripInfo?.start_date).format("LL") || "null value",
+                value: dayjs(tripInfo?.created_date).format("LL") ,
               },
               {
                 label: "End Date",
-                value: dayjs(tripInfo?.end_date).format("LL") || "null value",
+                value: dayjs(tripInfo?.end_date).format("LL"),
               },
              
               
