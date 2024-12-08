@@ -67,6 +67,21 @@ export const getDrivers = async () => {
   }
 };
 
+export const getCustomer = async (customerId) => {
+  try {
+    const response = await API.post("trip/trip.php", {
+      customer_id: customerId,
+      dataname: "getCustomer",
+    });
+    // console.log(response.data);
+
+    return response.data.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
 export const getDriver = async (driverId) => {
   try {
     const response = await API.post("trip/trip.php", {
