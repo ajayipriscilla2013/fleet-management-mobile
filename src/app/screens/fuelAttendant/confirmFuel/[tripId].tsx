@@ -28,12 +28,12 @@ const fuelEntrySchema = z.object({
   total_amount: z
     .number()
     .nonnegative("Total amount must be a non-negative number"),
-  odometer_before: z
-    .number()
-    .min(0, "Odometer reading before must be a non-negative number"),
-  odometer_after: z
-    .number()
-    .min(0, "Odometer reading after must be a non-negative number"),
+  // odometer_before: z
+  //   .number()
+  //   .min(0, "Odometer reading before must be a non-negative number"),
+  // odometer_after: z
+  //   .number()
+  //   .min(0, "Odometer reading after must be a non-negative number"),
   pump_reading_before: z
     .number()
     .min(0, "Pump reading before must be a non-negative number"),
@@ -114,7 +114,7 @@ const FuelInformationScreen = () => {
 
   const handleImageCapture = (image) => {
     if (currentField) {
-      setFormData((prevData) => ({ ...prevData, [currentField]: image.base64 }));
+      setFormData((prevData) => ({ ...prevData, [currentField]: image.uri }));
       setCameraVisible(false);
     }
   };
@@ -191,18 +191,18 @@ const FuelInformationScreen = () => {
             placeholder: "Enter total fuel price",
             numeric:true
           },
-          {
-            label: "Odometer Reading Before",
-            name: "odometer_before",
-            placeholder: "Enter odometer",
-            numeric:true
-          },
-          {
-            label: "Odometer Reading After",
-            name: "odometer_after",
-            placeholder: "Enter odometer",
-            numeric:true
-          },
+          // {
+          //   label: "Odometer Reading Before",
+          //   name: "odometer_before",
+          //   placeholder: "Enter odometer",
+          //   numeric:true
+          // },
+          // {
+          //   label: "Odometer Reading After",
+          //   name: "odometer_after",
+          //   placeholder: "Enter odometer",
+          //   numeric:true
+          // },
           {
             label: "Pump Reading Before",
             name: "pump_reading_before",
