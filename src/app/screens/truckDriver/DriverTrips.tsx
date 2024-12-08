@@ -37,6 +37,7 @@ import SkeletonLoader from "@/components/TripsSkeletonLoader";
 dayjs.extend(localizedFormat);
 
 const Trip = () => {
+  const tripId = 12334
   const router = useRouter();
   const { tab } = useLocalSearchParams();
 
@@ -257,6 +258,13 @@ const Trip = () => {
 
         <View className="w-full mx-6"></View>
       </View>
+
+      <TouchableOpacity
+        onPress={() => handlePress(`/screens/truckDriver/getFuel/${tripId}`)}
+        className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
+      >
+        <Text className="text-white font-bold">Get Fuel</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
