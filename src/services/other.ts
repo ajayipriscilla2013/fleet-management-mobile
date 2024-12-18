@@ -276,7 +276,7 @@ export const getFuelAttendantTripsToBeFueled= async()=>{
     
     return response.data.data
   } catch (error) {
-    
+    console.log(error);
   }
 }
 
@@ -291,6 +291,21 @@ export const getFuelAttendantTripsFueled= async()=>{
     
     return response.data.data
   } catch (error) {
+    console.log(error);
+  }
+}
+
+export const getFuelRequests= async()=>{
+  
+  try {
+    const response = await API.post("trip/trip.php",{
+      dataname:"getFuelRequests",
+     
+    })
+   
     
+    return response.data.data
+  } catch (error) {
+    console.log(error);
   }
 }
