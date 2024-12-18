@@ -166,11 +166,12 @@ const CreateTripForm = () => {
   const handleAssignDriver = () => {
     // Logic to assign truck driver
     // On success, switch to the AssignVendor form
-    if (isFuelling === "1") {
-      setActiveTab("assignVendor");
-    } else {
-      // setModalVisible(true);
-    }
+    // if (isFuelling === "1") {
+    //   setActiveTab("assignVendor");
+    // } else {
+    //   // setModalVisible(true);
+    // }
+    router.back()
   };
 
   const handleAssignVendor = () => {
@@ -484,7 +485,7 @@ const CreateTripForm = () => {
   const renderAssignDriverToTrip = () => (
     <>
       <AssignTruckDriverScreen
-        setIsFuelling={setIsFuelling}
+        // setIsFuelling={setIsFuelling}
         onAssignDriver={handleAssignDriver}
       />
     </>
@@ -552,7 +553,7 @@ const CreateTripForm = () => {
           </TouchableOpacity>
          
 
-          {isFuelling === "1" && (
+          {/* {isFuelling === "1" && (
             <>
              <View className="h-1 bg-gray-200 flex-1 mx-2" />
               <View className="h-1 bg-gray-200 flex-1 mx-2" />
@@ -583,15 +584,15 @@ const CreateTripForm = () => {
                 </Text>
               </TouchableOpacity>
             </>
-          )}
+          )} */}
         </View>
 
         {/* Render content based on active tab */}
         {activeTab === "tripInfo" && renderTripInformation()}
         {activeTab === "assignTruckDriver" && renderAssignDriverToTrip()}
-        {activeTab === "assignVendor" &&
+        {/* {activeTab === "assignVendor" &&
           isFuelling === "1" &&
-          renderAssignVendorToTrip()}
+          renderAssignVendorToTrip()} */}
         {/* Success Screen */}
         {activeTab === "success" && (
           <Modal

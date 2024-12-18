@@ -21,14 +21,15 @@ import AssignDriverToTruckScreen from "./AssignTruckToDriver";
 const assignDriverSchema = z.object({
   truck_driver_id: z.string().min(1, "Truck Driver is required"),
   trip_id: z.string().min(1, "Trip is required"),
-  fuelling: z.enum(["0", "1"]),
+  // fuelling: z.enum(["0", "1"]),
 });
 
-const AssignTruckDriverScreen = ({ onAssignDriver, setIsFuelling }) => {
+// const AssignTruckDriverScreen = ({ onAssignDriver, setIsFuelling }) => {
+const AssignTruckDriverScreen = ({ onAssignDriver }) => {
   const [formData, setFormData] = useState({
     truck_driver_id: "",
     trip_id: "",
-    fuelling: "0",
+    // fuelling: "0",
   });
   const [modalVisible, setModalVisible] = useState(false);
   const [assignDriverModalVisible, setAssignDriverModalVisible] =
@@ -255,7 +256,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver, setIsFuelling }) => {
         </View>
       </View>
 
-      <View>
+      {/* <View>
         <Text className="text-gray-600 mb-[10px]">Fueling ?</Text>
         <View
           className="mb-4 bg-white rounded-md p-2 h-[60px]"
@@ -282,7 +283,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver, setIsFuelling }) => {
             onClose={() => setFocusedField(null)}
           />
         </View>
-      </View>
+      </View> */}
 
       <TouchableOpacity
         className={`rounded-2xl p-4 mt-6 ${
