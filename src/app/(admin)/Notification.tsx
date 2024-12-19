@@ -62,8 +62,9 @@ const Notifications = () => {
       // Check if the error response contains a message
       const errorMessage =
         error.response?.data?.message || "Request Failed, Try Again";
+        // error.data?.message || "Request Failed, Try Again";
 
-      console.error("Error submitting data:", error);
+      console.error("Error submitting data:", error.data?.message);
       Alert.alert("Error", `${errorMessage}`);
      
     },

@@ -309,3 +309,25 @@ export const getFuelRequests= async()=>{
     console.log(error);
   }
 }
+export const requestFuel= async()=>{
+  const user_id= await AsyncStorage.getItem("user_id")
+  try {
+    const response = await API.post("trip/trip.php",{
+      dataname:"requestFuel",
+     driver_id: user_id,
+    })
+   
+      // Check response status manually
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.message || "Request failed.");
+      }
+  
+    console.log(response.data.data.data);
+    return response.data.data
+    
+  } catch (error) {
+    // console.log(error);
+    throw error.response || new Error("Network error");
+  }
+}
+
