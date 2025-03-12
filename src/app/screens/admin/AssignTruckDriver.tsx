@@ -4,19 +4,18 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
-  Modal,
-  Alert,
-  ActivityIndicator,
   TextInput,
+  Modal,
+  ActivityIndicator,
+  Alert
 } from "react-native";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import Picker from "react-native-picker-select";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "@/src/services/api";
 import { z } from "zod";
-import SuccessIcon from "@/assets/images/success.png";
 import AssignDriverToTruckScreen from "./AssignTruckToDriver";
+import SuccessIcon from "@/assets/images/success.png";
 
 const assignDriverSchema = z.object({
   truck_driver_id: z.string().min(1, "Truck Driver is required"),
@@ -24,20 +23,21 @@ const assignDriverSchema = z.object({
   // fuelling: z.enum(["0", "1"]),
 });
 
-// const AssignTruckDriverScreen = ({ onAssignDriver, setIsFuelling }) => {
 const AssignTruckDriverScreen = ({ onAssignDriver }) => {
   const [formData, setFormData] = useState({
     truck_driver_id: "",
     trip_id: "",
-    // fuelling: "0",
   });
-  const [modalVisible, setModalVisible] = useState(false);
-  const [assignDriverModalVisible, setAssignDriverModalVisible] =
-    useState(false); // State for controlling AssignDriver modal
+
+  const queryClient= useQueryClient()
   const [errors, setErrors] = useState({});
-  const [focusedField, setFocusedField] = useState(null);
+  const [isFocused, setIsFocused] = useState(false);
   const [truckName, setTruckName] = useState("");
   const [truckPlateNumber, setTruckPlateNumber] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+    const [assignDriverModalVisible, setAssignDriverModalVisible] =useState(false); // State for controlling AssignDriver modal
+    const [focusedField, setFocusedField] = useState(null);
+    
 
   const { data: driversData = [], isLoading: isDriversLoading } = useQuery({
     queryKey: ["driversforAssigning"],
@@ -49,16 +49,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
     },
   });
 
-  const drivers = driversData.map((driver) => ({
-    label: driver.driver_name,
-    value: driver.truck_driver_id,
-  }));
-
- 
-
-
   useEffect(() => {
-    refetchTrips()
     if (formData.truck_driver_id) {
       const selectedDriver = driversData.find(
         (driver) => driver.truck_driver_id === formData.truck_driver_id
@@ -70,7 +61,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
     }
   }, [formData.truck_driver_id, driversData]);
 
-  const { data: trips = [], isLoading: isTripsLoading,refetch:refetchTrips } = useQuery({
+    const { data: trips = [], isLoading: isTripsLoading,refetch:refetchTrips } = useQuery({
     queryKey: ["tripsToBeAssigned"],
     queryFn: async () => {
       // const user_id = await AsyncStorage.getItem("user_id");
@@ -103,6 +94,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
       Alert.alert("Success", `Driver Assigned to Trip`);
       // setModalVisible(true);
       onAssignDriver();
+      queryClient.invalidateQueries('initiatedTripsForAdmin')
     },
     onError: (error) => {
      const errorMessage =
@@ -127,31 +119,6 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
     setErrors({});
   };
 
-  const getPickerStyle = (fieldName) => ({
-    inputIOS: {
-      fontSize: 16,
-      paddingVertical: 12,
-      paddingHorizontal: 10,
-      borderWidth: 1,
-      borderColor: focusedField === fieldName ? "#394F91" : "#C4CCF0",
-      borderRadius: 4,
-      color: "black",
-      paddingRight: 30,
-      backgroundColor: focusedField === fieldName ? "#F0F2FF" : "white",
-    },
-    inputAndroid: {
-      fontSize: 16,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: focusedField === fieldName ? "#394F91" : "#C4CCF0",
-      borderRadius: 12,
-      color: "black",
-      paddingRight: 30,
-      backgroundColor: focusedField === fieldName ? "#F0F2FF" : "white",
-    },
-  });
-
   return (
     <ScrollView className="flex-1 pt-6">
       <View>
@@ -162,25 +129,36 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
           )}
         </View>
         <View
-          className="mb-4 bg-white rounded-md p-2 h-[60px]"
+          className={`mb-4 bg-white rounded-md p-2 h-[60px] ${
+            isFocused
+              ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
+              : "border-[#D1D3D8]"
+          }`}
           style={{
             borderWidth: 1,
-            borderColor: "#C4CCF0",
+            borderColor: isFocused ? "#C4CCF0" : "#D1D3D8",
             borderRadius: 8,
             paddingVertical: 2,
           }}
         >
           <Picker
-            value={formData.truck_driver_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, truck_driver_id: value })
-            }
-            items={drivers}
-            placeholder={{ label: "Select Truck Driver", value: "" }}
-            style={getPickerStyle("truck_driver_id")}
-            onOpen={() => setFocusedField("truck_driver_id")}
-            onClose={() => setFocusedField(null)}
-          />
+            selectedValue={formData.truck_driver_id}
+            onValueChange={(itemValue) => {
+              setFormData({ ...formData, truck_driver_id: itemValue });
+              setIsFocused(true);
+            }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+          >
+            <Picker.Item label="Select Truck Driver" value="" />
+            {driversData.map((driver) => (
+              <Picker.Item
+                key={driver.truck_driver_id}
+                label={driver.driver_name}
+                value={driver.truck_driver_id}
+              />
+            ))}
+          </Picker>
         </View>
       </View>
 
@@ -190,11 +168,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
           value={truckName}
           editable={false}
           className="mb-4 bg-gray-100 rounded-md p-2 h-[60px]"
-          style={{
-            borderWidth: 1,
-            borderColor: "#C4CCF0",
-            borderRadius: 8,
-          }}
+          style={{ borderWidth: 1, borderColor: "#C4CCF0", borderRadius: 8 }}
         />
       </View>
 
@@ -204,88 +178,83 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
           value={truckPlateNumber}
           editable={false}
           className="mb-4 bg-gray-100 rounded-md p-2 h-[60px]"
-          style={{
-            borderWidth: 1,
-            borderColor: "#C4CCF0",
-            borderRadius: 8,
-          }}
+          style={{ borderWidth: 1, borderColor: "#C4CCF0", borderRadius: 8 }}
         />
       </View>
 
-
-      <Text className="text-gray-600 mb-[10px]">Assign Different Truck to Driver</Text>
-      <TouchableOpacity
-        className="bg-white rounded-md p-2 mb-4 h-[60px] justify-center"
-        style={{
-          borderWidth: 1,
-          borderColor: "#C4CCF0",
-          borderRadius: 8,
-        }}
-        onPress={() => setAssignDriverModalVisible(true)}
-      >
-        <Text className="text-gray-600">Do you want to Assign Driver to Another Truck?</Text>
-      </TouchableOpacity>
-
       <View>
-        <View className="flex-row justify-between">
-          <Text className="text-gray-600 mb-[10px]">Trips</Text>
-          {errors.trip_id && (
-            <Text className="mb-2 text-red-500">{errors.trip_id}</Text>
-          )}
-        </View>
-        <View
-          className="mb-4 bg-white rounded-md p-2 h-[60px]"
-          style={{
-            borderWidth: 1,
-            borderColor: "#C4CCF0",
-            borderRadius: 8,
-            paddingVertical: 2,
-          }}
-        >
-          <Picker
-            value={formData.trip_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, trip_id: value })
-            }
-            items={trips}
-            placeholder={{ label: "Select Trip", value: "" }}
-            style={getPickerStyle("trip_id")}
-            onOpen={() => setFocusedField("trip_id")}
-            onClose={() => setFocusedField(null)}
-          />
-        </View>
-      </View>
+  <Text className="text-gray-600 mb-[10px]">Assign Different Truck to Driver</Text>
+  <TouchableOpacity
+    className="bg-white rounded-md p-2 mb-4 h-[60px] justify-center"
+    style={{
+      borderWidth: 1,
+      borderColor: "#C4CCF0",
+      borderRadius: 8,
+    }}
+    onPress={() => setAssignDriverModalVisible(true)}
+  >
+    <Text className="text-gray-600">Do you want to Assign Driver to Another Truck?</Text>
+  </TouchableOpacity>
 
-      {/* <View>
-        <Text className="text-gray-600 mb-[10px]">Fueling ?</Text>
-        <View
-          className="mb-4 bg-white rounded-md p-2 h-[60px]"
-          style={{
-            borderWidth: 1,
-            borderColor: "#C4CCF0",
-            borderRadius: 8,
-            paddingVertical: 2,
-          }}
-        >
-          <Picker
-            value={formData.fuelling}
-            onValueChange={(value) => {
-              setFormData({ ...formData, fuelling: value });
-              setIsFuelling(value);
-            }}
-            items={[
-              { label: "No", value: "0" },
-              { label: "Yes", value: "1" },
-            ]}
-            placeholder={{ label: "Select Fueling Option", value: null }}
-            style={getPickerStyle("fuelling")}
-            onOpen={() => setFocusedField("fuelling")}
-            onClose={() => setFocusedField(null)}
-          />
-        </View>
-      </View> */}
+  <View>
+    <View className="flex-row justify-between">
+      <Text className="text-gray-600 mb-[10px]">Trips</Text>
+      {errors.trip_id && <Text className="mb-2 text-red-500">{errors.trip_id}</Text>}
+    </View>
+    <View
+      className="mb-4 bg-white rounded-md p-2 h-[60px]"
+      style={{
+        borderWidth: 1,
+        borderColor: "#C4CCF0",
+        borderRadius: 8,
+        paddingVertical: 2,
+      }}
+    >
+      <Picker
+        selectedValue={formData.trip_id}
+        onValueChange={(value) => setFormData({ ...formData, trip_id: value })}
+        style={{ color: "#000" }} // Customize as needed
+      >
+        <Picker.Item label="Select Trip" value="" />
+        {trips.map((trip, index) => (
+          <Picker.Item key={index} label={trip.label} value={trip.value} />
+        ))}
+      </Picker>
+    </View>
+  </View>
+</View>
 
-      <TouchableOpacity
+      
+
+
+        <View>
+  <Text className="text-gray-600 mb-[10px]">Fueling?</Text>
+  <View
+    className="mb-4 bg-white rounded-md p-2 h-[60px]"
+    style={{
+      borderWidth: 1,
+      borderColor: "#C4CCF0",
+      borderRadius: 8,
+      paddingVertical: 2,
+    }}
+  >
+    <Picker
+      selectedValue={formData.fuelling}
+      onValueChange={(value) => {
+        setFormData({ ...formData, fuelling: value });
+        // setIsFuelling(value);
+      }}
+      style={{ color: "#000" }} // Customize as needed
+    >
+      <Picker.Item label="Select Fueling Option" value={null} />
+      <Picker.Item label="No" value="0" />
+      <Picker.Item label="Yes" value="1" />
+    </Picker>
+  </View>
+</View>
+
+
+        <TouchableOpacity
         className={`rounded-2xl p-4 mt-6 ${
           assignTruckDriverMutation.isPending ? "bg-[#8896C3]" : "bg-[#394F91]"
         }`}
@@ -303,8 +272,11 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
         )}
       </TouchableOpacity>
 
-      {/* Assign Driver Modal */}
-      <Modal
+
+
+
+       {/* Assign Driver Modal */}
+       <Modal
         animationType="slide"
         transparent={false}
         visible={assignDriverModalVisible}
@@ -325,36 +297,6 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
           />
         </View>
       </Modal>
-      {/* <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-[rgba(0, 0, 0, 0.5)] gap-4">
-          <View className='m-5 bg-white rounded-2xl p-9 items-center' style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5
-          }}>
-            <View className="rounded-full flex items-center justify-center bg-[#EEF0FB] mx-auto w-[84px] h-[84px]">
-              <Image source={SuccessIcon} />
-            </View>
-            <Text className="font-semibold text-center text-xl text-[#394F91]">Assignment Successful 🚀</Text>
-            <Text className="text-primary text-center mt-2">
-              You have successfully assigned a truck driver to the trip
-            </Text>
-            <TouchableOpacity
-              className="bg-[#394F91] p-4 rounded-lg mt-4 w-full"
-              onPress={() => setModalVisible(false)}
-            >
-              <Text className="text-white text-center font-semibold">Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal> */}
     </ScrollView>
   );
 };

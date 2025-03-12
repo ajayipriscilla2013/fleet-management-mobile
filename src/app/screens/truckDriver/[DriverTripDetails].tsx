@@ -22,7 +22,7 @@ import Img1 from "@/assets/images/img1.png";
 import Img2 from "@/assets/images/img2.png";
 import Img3 from "@/assets/images/img3.png";
 import { getSingleTrip } from "@/src/services/other";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery,useQueryClient } from "@tanstack/react-query";
 import {
   DriverRequestToCloseTrip,
   getTripDetailsForDriver,
@@ -70,6 +70,8 @@ const TripDetailsScreen = () => {
     router.push(path);
   };
 
+  const queryClient= useQueryClient()
+
   const { DriverTripDetails:tripId } = useLocalSearchParams();
 
   console.log("trip_ID", tripId);
@@ -84,6 +86,8 @@ const TripDetailsScreen = () => {
     onSuccess: () => {
       console.log("successfully requested to close trip");
       Alert.alert("Success", "Close Trip Request Successful");
+      queryClient.invalidateQueries("inProgressTripsForDriver");
+      router.back()
     },
     onError: (error) => {
       const errorMessage = error.response?.data?.message || "Request Failed, Try Again";
@@ -352,7 +356,7 @@ const TripDetailsScreen = () => {
                 <View className="flex-row items-center mb-2">
                   <OriginIcon />
                   <Text className="text-gray-600 ml-1">
-                    Gwarinpa, Abuja, Nigeria
+                    {tripInfo?.origin_name}
                   </Text>
                 </View>
 
@@ -365,7 +369,7 @@ const TripDetailsScreen = () => {
                 <View className="flex-row items-center">
                   <LocationIcon />
                   <Text className="text-gray-600 ml-1">
-                    Airport Road, Abuja, Nigeria
+                    {tripInfo?.destination_name}
                   </Text>
                 </View>
                 <View className="flex-row gap-1  ml-5">
@@ -383,12 +387,12 @@ const TripDetailsScreen = () => {
                   </Text>
                 </View>
                 {[
-                  { label: "Tonnage Offloaded", value: "20" },
-                  { label: "Tonnage Material", value: "Sand" },
-                  { label: "Waybill Number", value: "2346790" },
-                  { label: "Odometer Reading", value: "100" },
-                  { label: "Destination", value: "Gwarinpa, Abuja" },
-                  { label: "Remark", value: "Successful Trip" },
+                  { label: "Tonnage Offloaded", value: tripInfo?.loading_qty},
+                  { label: "Tonnage Material", value: tripInfo?.producttype_name },
+                  // { label: "Waybill Number", value: "2346790" },
+                  // { label: "Odometer Reading", value: "100" },
+                  { label: "Destination", value: tripInfo?.destination_name },
+                  { label: "Remark", value: tripInfo?.role },
                 ].map((item, index) => (
                   <View
                     key={index}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Platform,
   RefreshControl,
@@ -20,7 +21,7 @@ import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
 import { Badge } from "@/components/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getCompletedTrips,
   getFuelRequests,
@@ -45,6 +46,7 @@ const Trip = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState(tab || 'initiated');
+  
   
   
 
@@ -132,10 +134,17 @@ const Trip = () => {
     setRefreshing(false);
   };
 
+  const handleFuellingRequestsDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchPendingFuelRequestData()
+    setRefreshing(false);
+  };
+
   useEffect(()=>{
     refetchInitiatedTripsData()
     refetchInProgressTripsData()
     refetchDeliveredTripsData()
+    refetchPendingFuelRequestData()
   },[])
 
   const renderInititatedTripItem = ({ item }) => (
@@ -540,20 +549,51 @@ const Trip = () => {
     </TouchableOpacity>
   );
 
+  const handleItemClick = (item, status) => {
+    const payload = {
+      fuel_request_id: item.fuel_request_id, // Extract from item
+      status: status, // Pass either "approved" or "declined"
+      vendor_id: item.vendor_id, // Replace with actual vendor_id
+      admin_id: "fma3998", // Replace with dynamic admin_id
+      dataname: "confirmFuelRequest",
+    };
+  
+    confirmFuelRequest(payload);
+  };
+  
+
+  const mutation = useMutation({
+    mutationFn:() =>confirmFuelRequest(),
+    onSuccess: () => {
+      console.log("Fuel Requested");
+      Alert.alert("Success", "Fuel Requested");
+    },
+    onError: (error) => {
+      // Check if the error response contains a message
+      const errorMessage =
+        // error.response?.data?.message || "Request Failed, Try Again";
+        error.data?.message || "Request Failed, Try Again";
+
+      console.error("Error submitting data:", error.data.message);
+      Alert.alert("Error", `${errorMessage}`);
+     
+    },
+  });
+
   const renderPendingFuelRequestItem=({item})=>(
     <TouchableOpacity
       onPress={() =>
         handlePress(
-          `/screens/admin/AdminTripDetailsScreen?status=initiated&tripId=${item.trip_id}`
+          `/screens/admin/FuelConfirmation?requestId=${item.id}`
         )
       }
     >
       <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold text-base text-[#1D1E20]">
-            {item.trip_id}
+            Request Id- {item.id}
           </Text>
-          <Badge label="Initiated" variant="initiated" />
+          <Badge label="Pending Fuel Request" variant="initiated" />
         </View>
 
         <View className="flex flex-row items-end justify-between">
@@ -561,13 +601,13 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.origin_name} to {item.destination_name}
+               Driver: {item.driver_id} 
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {dayjs(item.start_date).format("LL")} to {dayjs(item.end_date).format("LL")}
+               Requested on {dayjs(item.created_at).format("LL")} 
               </Text>
             </View>
           </View>
@@ -629,7 +669,7 @@ const Trip = () => {
       <FlatList
         data={pendingFuelRequestData}
         renderItem={renderPendingFuelRequestItem}
-        keyExtractor={(item) => item.trip_id.toString()}
+        keyExtractor={(item) => item.id.toString()}
         className="mt-4"
         contentContainerStyle={{ paddingBottom: 150 }}
         refreshControl={ 

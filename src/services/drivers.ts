@@ -104,7 +104,7 @@ export const DriverRequestToCloseTrip = async (tripId) => {
     
     return response.data.data
   } catch (error) {
-    console.error("Error fetching InProgress trips:", error);
+    console.error("Error fetching trips:", error);
     throw error;
   }
 };

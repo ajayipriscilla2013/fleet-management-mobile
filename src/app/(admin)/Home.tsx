@@ -380,8 +380,8 @@ const Home = () => {
 
     <View className="flex-1 bg-[#F9F9F9] ">
       <View className="rounded-b-3xl flex-col w-full">
-        <ImageBackground source={Bg} resizeMode="stretch" className="h-[211px] ">
-          <View className="flex-row justify-between items-end">
+        <ImageBackground source={Bg} resizeMode="cover" className="h-[211px]  w-full ">
+          <View className="flex-row justify-between  items-end">
             <View className="mt-28 mx-6">
               <Text className="text-2xl w-2/3 text-white font-semibold">
                 Welcome,{" "}

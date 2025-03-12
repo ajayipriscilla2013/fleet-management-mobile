@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getCustomers,
   getLoadingPoint,
@@ -35,21 +35,14 @@ import CustomModal from "@/components/CustomModal";
 
 dayjs.extend(localizedFormat);
 const tripSchema = z.object({
-  producttype_id: z.number().min(1, "Product type is required"),
-  loading_point: z.number().min(1, "Loading point is required"),
-  offloading_point: z.number().min(1, "Offloading point is required"),
-  customer_id: z.string().min(1, "Customer is required"),
+  producttype_id: z.coerce.number().min(1, "Product type is required"),
+  loading_point: z.coerce.string().min(1, "Loading point is required"),
+  offloading_point: z.coerce.string().min(1, "Offloading point is required"),
+  customer_id: z.coerce.string().min(1, "Customer is required"),
   is_customer_confirmation_required: z.enum(["0", "1"]),
-  loading_qty: z
-    .string()
-    .regex(/^\d+$/, "Loading quantity must be a number")
-    .refine(
-      (val) => parseInt(val, 10) > 0,
-      "Loading quantity must be greater than 0"
-    ),
-  start_date: z.date({ required_error: "Start date is required" }),
-  end_date: z.date({ required_error: "End date is required" }),
-  // user_id: z.string(),
+  loading_qty: z.coerce.number().min(1, "Loading qty required"),
+  start_date: z.coerce.date({ required_error: "Start date is required" }),
+  end_date: z.coerce.date({ required_error: "End date is required" }),  
 });
 
 const CreateTripForm = () => {
@@ -67,6 +60,8 @@ const CreateTripForm = () => {
     end_date: new Date(),
     user_id: "",
   });
+
+  const queryClient = useQueryClient()
 
   const [loadingPoints, setLoadingPoints] = useState([]);
   const [offloadingPoints, setOffloadingPoints] = useState([]);
@@ -109,22 +104,7 @@ const CreateTripForm = () => {
       console.log("Trip created successfully", data);
       Alert.alert("Success", "Trip Created Succeefully");
       setActiveTab("assignTruckDriver");
-      // setModalContent({
-      //   title: " Successful 🚀",
-      //   message: "Trip Creation successfull",
-      //   content: (
-      //     <View>
-           
-      //     </View>
-      //   ),
-      //   icon: SuccessIcon,
-      //   buttonText: "Continue",
-      //   buttonColor: "#394F91",
-      //   titleColor: "#394F91"
-      // });
-      // setModalVisible(true);
-      // Handle success (e.g., show a success message, navigate to another screen)
-      // QueryClient.invalidateQueries('trips'); // Assuming you have a 'trips' query to refetch
+      queryClient.invalidateQueries('initiatedTripsForAdmin'); 
     },
     onError: (error) => {
       // Check if the error response contains a message
@@ -380,7 +360,7 @@ const CreateTripForm = () => {
           </View>
         </View>
 
-        <View className="mb-4">
+        {/* <View className="mb-4">
           <View className="fldx-row justify-between">
             <Text className="text-gray-600 mb-[10px]">Loading Quantity</Text>
             {errors.loading_qty && (
@@ -404,6 +384,60 @@ const CreateTripForm = () => {
                 : "border-[#D1D3D8]"
             }`}
           />
+        </View> */}
+
+        <View className="mb-4">
+          <View className="fldx-row justify-between">
+            <Text className="text-gray-600 mb-[10px]">Loading Quantity</Text>
+            {errors.loading_qty && (
+              <Text className="mb-2" style={{ color: "red" }}>
+                {errors.loading_qty}
+              </Text>
+            )}
+          </View>
+           <View
+                      style={{
+                        borderWidth: 1,
+                        borderColor: isFocused ? "#C4CCF0" : "#D1D3D8",
+                        borderRadius: 8,
+                        paddingVertical: 2,
+                      }}
+                      // className={`border bg-white rounded-md w-full  p-2 h-[60px] ${
+                      //     isFocused === formData.loading_qty
+                      //     ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+                      //     : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+                      // }`}
+                      className={`border bg-white   rounded-md p-2 h-[60px] ${
+                        isFocused
+                          ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
+                          : "border-[#D1D3D8]"
+                      }`}
+                    >
+                      <Picker
+                        selectedValue={formData.loading_qty}
+                        onValueChange={(itemValue) => {
+                          setFormData({ ...formData, loading_qty: itemValue });
+                          // setIsFocused(true);
+                        }}
+                        // className={`border bg-white rounded-md  p-2 h-[60px] ${
+                        //   focusedField === formData.loading_qty
+                        //     ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+                        //     : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+                        // }`}
+                        className={`border bg-white   rounded-md p-2 h-[60px] ${
+                          isFocused
+                            ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
+                            : "border-[#D1D3D8]"
+                        }`}
+                      >
+                        <Picker.Item label="Select Loading Quantity (in Tons)" value="" />
+                         {[{name:"30 Tonns",value:30},{name:"45 Tons",value:45}, {name:"60 Tons",value:60}]
+                                      
+                                      ?.map((tonnage, index) => (
+                                        <Picker.Item key={index} label={tonnage.name} value={tonnage.value} />
+                                      ))}
+                      </Picker>
+                    </View>
         </View>
 
         <Text className="text-gray-600 mb-[10px]">Start Date </Text>

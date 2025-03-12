@@ -24,10 +24,7 @@ import { Picker } from "@react-native-picker/picker";
 
 // Define the validation schema using Zod
 const offloadingSchema = z.object({
-  offloading_qty: z
-    .string()
-    .nonempty("Tonnage Offloaded is required")
-    .regex(/^[0-9]*$/, "Must be a valid number"),
+  offloading_qty: z.number().min(1, "Tonnage Offloaded is required"),
   waybill_no: z.string().nonempty("Waybill Number is required"),
   odometer_reading: z
     .string()
@@ -56,7 +53,7 @@ const OffloadingPointScreen = () => {
     odometer_picture: "",
     delivery_location: "",
     waybill_picture: "",
-    lattitude: null,
+    latitude: null,
     longitude: null,
     delivery_time: new Date(),
     remarks: "",
@@ -67,14 +64,24 @@ const OffloadingPointScreen = () => {
   // Request location permission and get the user's location
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission to access location was denied");
-        return;
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        console.log("Location Permission Status:", status);
+  
+        if (status !== "granted") {
+          Alert.alert("Permission to access location was denied");
+          return;
+        }
+  
+        let currentLocation = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+  
+        console.log("Current Location:", currentLocation);
+        setLocation(currentLocation);
+      } catch (error) {
+        console.error("Error fetching location:", error);
       }
-
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
     })();
   }, []);
 
@@ -101,7 +108,8 @@ const OffloadingPointScreen = () => {
   });
 
   const submitOffloadingData = async (data) => {
-    const userId = await AsyncStorage.getItem("user_id");
+    try {
+      const userId = await AsyncStorage.getItem("user_id");
     const response = await API.post("trip/trip.php", {
       dataname: "driverOffloadingPoint",
       driver_id: userId,
@@ -109,6 +117,11 @@ const OffloadingPointScreen = () => {
       delivery_time: dayjs(data.delivery_time).format("YYYY-MM-DD HH:mm:ss"),
     });
     return response.data;
+    } catch (error) {
+      console.log(error);
+      
+    }
+    
   };
 
   const mutation = useMutation({
@@ -117,7 +130,7 @@ const OffloadingPointScreen = () => {
       Alert.alert("Success", "Offloading point data submitted");
       queryClient.invalidateQueries("TripInfoForDriver");
       queryClient.invalidateQueries("inProgressTripsForDriver");
-      router.push(`/screens/truckDriver/${tripId}`);
+      router.push("/(truckDriver)/Trip?tab=inProgress");
     },
     onError: (error) => {
       const errorMessage =
@@ -149,35 +162,42 @@ const OffloadingPointScreen = () => {
   };
 
   const handleSubmit = async () => {
-    if (location) {
-      // Ensure that latitude and longitude are updated before validation and mutation
-      setFormData((prevData) => ({
-        ...prevData,
-        lattitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      }));
-
-      // After updating formData, validate and submit the form
-      const updatedFormData = {
-        ...formData,
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      };
-      try {
-        setFormErrors({});
-        offloadingSchema.parse(formData);
-        mutation.mutate(updatedFormData);
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          const errors = {};
-          error.errors.forEach((err) => {
-            errors[err.path[0]] = err.message;
-          });
-          setFormErrors(errors);
-        }
+    console.log("Location at Submit:", location);
+    console.log("FormData before Submit:", formData);
+    
+    if (!location) {
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      if (currentLocation) {
+        setLocation(currentLocation);
+      } else {
+        Alert.alert("Location not available", "Please enable location services and try again.");
+        return;
       }
-    } else {
-      Alert.alert("Location not available", "Please enable location services");
+    }
+  
+    // Ensure formData is updated with the latest location
+    const updatedFormData = {
+      ...formData,
+      latitude: location?.coords?.latitude,
+      longitude: location?.coords?.longitude,
+    };
+
+    console.log("Updated FormData:", updatedFormData);
+  
+    try {
+      setFormErrors({});
+      offloadingSchema.parse(updatedFormData);
+      mutation.mutate(updatedFormData);
+    } catch (error) {
+      console.log(error);
+      
+      if (error instanceof z.ZodError) {
+        const errors = {};
+        error.errors.forEach((err) => {
+          errors[err.path[0]] = err.message;
+        });
+        setFormErrors(errors);
+      }
     }
   };
 
