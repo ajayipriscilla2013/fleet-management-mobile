@@ -11,6 +11,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
@@ -28,20 +29,48 @@ import {
   getInitiatedTripsForDriver,
   getInProgressTripsForDriver,
 } from "@/src/services/drivers";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import SkeletonLoader from "@/components/TripsSkeletonLoader";
+import { requestFuel } from "@/src/services/other";
 
 dayjs.extend(localizedFormat);
 
 const Trip = () => {
+  const tripId = 12334
   const router = useRouter();
   const { tab } = useLocalSearchParams();
 
   const [activeTab, setActiveTab] = useState(tab || "initiated");
   const [refreshing, setRefreshing] = useState(false); // State to manage refreshing
+
+ 
+
+  const mutation = useMutation({
+    mutationFn:() =>requestFuel(),
+    onSuccess: () => {
+      console.log("Fuel Requested");
+      Alert.alert("Success", "Fuel Requested");
+    },
+    onError: (error) => {
+      // Check if the error response contains a message
+      const errorMessage =
+        // error?.response?.data?.message || "Request Failed, Try Again";
+        error.message || "Request Failed, Try Again";
+      console.log(error);
+      Alert.alert("Error", `${errorMessage}`);
+      
+
+     
+    },
+  });
+
+  const handleSubmit = () => {
+    mutation.mutate();
+  };
+
 
   const {
     data: initiatedTripsData = [],
@@ -257,6 +286,17 @@ const Trip = () => {
 
         <View className="w-full mx-6"></View>
       </View>
+
+      <TouchableOpacity
+        // onPress={() => handlePress(`/screens/truckDriver/getFuel/${tripId}`)}
+        onPress={() => {
+         handleSubmit()
+         
+        }}
+        className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
+      >
+        <Text className="text-white font-bold">Get Fuel</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

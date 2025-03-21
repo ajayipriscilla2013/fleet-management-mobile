@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Platform,
   RefreshControl,
@@ -20,9 +21,10 @@ import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
 import { Badge } from "@/components/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getCompletedTrips,
+  getFuelRequests,
   getInitiatedTrips,
   getInProgressTrips,
   getTripsWithClosingRequest,
@@ -44,6 +46,9 @@ const Trip = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState(tab || 'initiated');
+  
+  
+  
 
   const {
     data: initiatedTripsData=[],
@@ -88,6 +93,17 @@ const Trip = () => {
     queryFn: getTripsWithClosingRequest,
   });
 
+
+  const {
+    data: pendingFuelRequestData=[],
+    isLoading: pendingFuelRequestDataProgressLoading,
+    error: pendingFuelRequestDataError,
+    refetch:refetchPendingFuelRequestData
+  } = useQuery({
+    queryKey: ["Pending Fuel Requests"],
+    queryFn: getFuelRequests,
+  });
+
   const handleInitiatedTripsDataRefresh = async () => {
     setRefreshing(true);
     await refetchInitiatedTripsData()
@@ -112,10 +128,23 @@ const Trip = () => {
     setRefreshing(false);
   };
 
+  const handleTripsRequiringFuellingDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchPendingFuelRequestData()
+    setRefreshing(false);
+  };
+
+  const handleFuellingRequestsDataRefresh = async () => {
+    setRefreshing(true);
+    await refetchPendingFuelRequestData()
+    setRefreshing(false);
+  };
+
   useEffect(()=>{
     refetchInitiatedTripsData()
     refetchInProgressTripsData()
     refetchDeliveredTripsData()
+    refetchPendingFuelRequestData()
   },[])
 
   const renderInititatedTripItem = ({ item }) => (
@@ -520,9 +549,140 @@ const Trip = () => {
     </TouchableOpacity>
   );
 
+  const handleItemClick = (item, status) => {
+    const payload = {
+      fuel_request_id: item.fuel_request_id, // Extract from item
+      status: status, // Pass either "approved" or "declined"
+      vendor_id: item.vendor_id, // Replace with actual vendor_id
+      admin_id: "fma3998", // Replace with dynamic admin_id
+      dataname: "confirmFuelRequest",
+    };
+  
+    confirmFuelRequest(payload);
+  };
+  
+
+  const mutation = useMutation({
+    mutationFn:() =>confirmFuelRequest(),
+    onSuccess: () => {
+      console.log("Fuel Requested");
+      Alert.alert("Success", "Fuel Requested");
+    },
+    onError: (error) => {
+      // Check if the error response contains a message
+      const errorMessage =
+        // error.response?.data?.message || "Request Failed, Try Again";
+        error.data?.message || "Request Failed, Try Again";
+
+      console.error("Error submitting data:", error.data.message);
+      Alert.alert("Error", `${errorMessage}`);
+     
+    },
+  });
+
+  const renderPendingFuelRequestItem=({item})=>(
+    <TouchableOpacity
+      onPress={() =>
+        handlePress(
+          `/screens/admin/FuelConfirmation?requestId=${item.id}`
+        )
+      }
+    >
+      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-semibold text-base text-[#1D1E20]">
+            Request Id- {item.id}
+          </Text>
+          <Badge label="Pending Fuel Request" variant="initiated" />
+        </View>
+
+        <View className="flex flex-row items-end justify-between">
+          <View>
+            <View className="flex-row items-center gap-1">
+              <LocationIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+               Driver: {item.driver_id} 
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <CalendarIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+               Requested on {dayjs(item.created_at).format("LL")} 
+              </Text>
+            </View>
+          </View>
+          <ArrowIcon />
+        </View>
+      </View>
+    </TouchableOpacity>
+  )
+
+  const renderPendingFuelRequestContent= ()=>{
+    if (refreshing) {
+      return (
+        <View>
+          <SkeletonLoader />
+          <SkeletonLoader />
+          <SkeletonLoader />
+        </View>
+      );
+    }
+    if (pendingFuelRequestDataProgressLoading) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <ActivityIndicator />
+        </View>
+      );
+    }
+
+    if (pendingFuelRequestDataError) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
+          <Text className="text-lg text-red-500">
+          Request Failed, Try Again 
+          </Text>
+          <TouchableOpacity
+          className="bg-[#394F91] rounded-2xl p-4"
+          onPress={() => refetchTripsRequestedToBeClosedData()}
+        >
+          <Text className="text-white text-center font-semibold">
+            Retry
+          </Text>
+        </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (pendingFuelRequestData.length === 0) {
+      return (
+        <View className="flex items-center justify-center mt-10">
+          <EmptyScreen />
+          <Text className="text-lg text-gray-500">
+            No Pending trips requiring Fuelling .
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={pendingFuelRequestData}
+        renderItem={renderPendingFuelRequestItem}
+        keyExtractor={(item) => item.id.toString()}
+        className="mt-4"
+        contentContainerStyle={{ paddingBottom: 150 }}
+        refreshControl={ 
+          <RefreshControl refreshing={refreshing} onRefresh={handleTripsRequiringFuellingDataRefresh} />
+        }
+      />
+    );
+  }
+
   const tabs = [
     { value: "initiated", title: "Initiated Trips" },
     { value: "inProgress", title: "In-Progress Trips" },
+    { value: "fuelRequests", title: "Fuel Requests" },
     { value: "closeTrips", title: "Close Trip Requests" },
     { value: "delivered", title: "Delivered Trips" },
   ];
@@ -580,6 +740,10 @@ const Trip = () => {
 
           <TabsContent value="inProgress">
             {renderInProgressContent()}
+          </TabsContent>
+
+          <TabsContent value="fuelRequests">
+            {renderPendingFuelRequestContent()}
           </TabsContent>
 
           <TabsContent value="delivered">

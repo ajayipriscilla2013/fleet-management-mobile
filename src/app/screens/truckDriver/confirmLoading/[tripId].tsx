@@ -9,6 +9,7 @@ import { z } from 'zod';
 import * as Location from 'expo-location';
 import { Modal } from 'react-native';
 import ZoomedCameraComponent from '@/components/ZoomedCamera';
+import { Picker } from '@react-native-picker/picker';
 
 
 
@@ -29,31 +30,41 @@ const LoadingPointScreen = () => {
 
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [formData, setFormData] = useState({
     trip_id: tripId,
     loading_qty: '',
     truck_picture: '',
     odometer_reading: '',
     remarks: '',
-    lattitude: "",
+    latitude: "",
     longitude: "",
     dataname: 'driverLoadingPoint',
   });
 
    // Request location permission and get the user's location
-   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission to access location was denied');
-        return;
-      }
-
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
-    })();
-  }, []);
+  useEffect(() => {
+      (async () => {
+        try {
+          let { status } = await Location.requestForegroundPermissionsAsync();
+          console.log("Location Permission Status:", status);
+    
+          if (status !== "granted") {
+            Alert.alert("Permission to access location was denied");
+            return;
+          }
+    
+          let currentLocation = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+          });
+    
+          console.log("Current Location:", currentLocation);
+          setLocation(currentLocation);
+        } catch (error) {
+          console.error("Error fetching location:", error);
+        }
+      })();
+    }, []);
   
   const [image, setImage] = useState(null);
   
@@ -74,15 +85,13 @@ const LoadingPointScreen = () => {
     onSuccess: (response) => {
       console.log("fueling required response",response);
       
-      // Check if fueling is 1, then navigate to another page
-      if (response.fueling === 1) {
-        router.push(`/screens/truckDriver/getFuel/${tripId}`); 
-      } else {
+     
         Alert.alert("Success", "Loading point data submitted");
         queryClient.invalidateQueries("TripInfoForDriver"); 
         queryClient.invalidateQueries("inProgressTripsForDriver");
-        router.push(`/screens/truckDriver?tab=inProgress`);
-      }
+        router.push("/(truckDriver)/Trip?tab=inProgress");
+
+``
     },
     onError: (error) => {
       const errorMessage = error.response?.data?.message || "Request Failed, Try Again";
@@ -104,45 +113,93 @@ const LoadingPointScreen = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    if (location) {
-      // Ensure that latitude and longitude are updated before validation and mutation
-      setFormData(prevData => ({
-        ...prevData,
-        lattitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      }));
+  const handleSubmit = async() => {
+    console.log("Location at Submit:", location);
+    console.log("FormData before Submit:", formData)
+    if (!location) {
+          let currentLocation = await Location.getCurrentPositionAsync({});
+          if (currentLocation) {
+            setLocation(currentLocation);
+          } else {
+            Alert.alert("Location not available", "Please enable location services and try again.");
+            return;
+          }
+        }
   
-      // After updating formData, validate and submit the form
-      const updatedFormData = {
-        ...formData,
-        loading_qty: Number(formData.loading_qty), // Convert to number
-        odometer_reading: Number(formData.odometer_reading),
-        lattitude: `${location.coords.latitude}`,
-        longitude: `${location.coords.longitude}`,
-      };
+    setErrors({}); // Clear errors before validating
   
-      // Perform Zod validation
-      const validation = formSchema.safeParse(updatedFormData);
-      if (!validation.success) {
-        const fieldErrors = {};
-        validation.error.errors.forEach((err) => {
-          fieldErrors[err.path[0]] = err.message;
-        });
-        setErrors(fieldErrors);
-        return;
-      }
+    const updatedFormData = {
+      ...formData,
+      loading_qty: Number(formData.loading_qty) || 0,
+      odometer_reading: Number(formData.odometer_reading) || 0,
+      latitude: `${location?.coords.latitude}`,
+      longitude: `${location?.coords.longitude}`,
+    };
+
+    console.log("Updated FormData:", updatedFormData);
   
-      setErrors({}); // Clear previous errors
-      mutation.mutate(updatedFormData); // Use the updated form data with location
-    } else {
-      Alert.alert('Location not available', 'Please enable location services');
+    // Perform Zod validation
+    const validation = formSchema.safeParse(updatedFormData);
+    if (!validation.success) {
+      const fieldErrors = {};
+      validation.error.errors.forEach((err) => {
+        fieldErrors[err.path[0]] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
     }
+  
+    mutation.mutate(updatedFormData);
   };
   return (
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
+      <View className="mb-4">
+        <View className="flex-col justify-between">
+          <View className="flex-row w-full  justify-between">
+            <Text className="text-gray-600 mb-[10px]">Confirm Tonnage loaded</Text>
+            {errors.loading_qty && (
+              <Text className="text-red-500 text-sm">
+                {errors.loading_qty}
+              </Text>
+            )}
+          </View>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: focusedField ? "#C4CCF0" : "#D1D3D8",
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+            className={`border bg-white rounded-md w-full  p-2 h-[60px] ${
+              focusedField === formData.loading_qty
+                ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+                : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+            }`}
+          >
+            <Picker
+              selectedValue={formData.loading_qty}
+              onValueChange={(itemValue) => {
+                setFormData({ ...formData, loading_qty: itemValue });
+                // setIsFocused(true);
+              }}
+              className={`border bg-white rounded-md  p-2 h-[60px] ${
+                focusedField === formData.loading_qty
+                  ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+                  : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+              }`}
+            >
+              <Picker.Item label="Select Tonnage Loaded (in Tonns)" value="" />
+              {[{name:"30 Tonns",value:30},{name:"45 Tons",value:45}, {name:"60 Tons",value:60}]
+              
+              ?.map((tonnage, index) => (
+                <Picker.Item key={index} label={tonnage.name} value={tonnage.value} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </View>
       {[
-        { label: 'Confirm Tonnage loaded', name: 'loading_qty', placeholder: 'Enter tonnage loaded',numeric:true },
+        // { label: 'Confirm Tonnage loaded', name: 'loading_qty', placeholder: 'Enter tonnage loaded',numeric:true },
         { label: 'Remarks', name: 'remarks', placeholder: 'Enter Remarks' },
         { label: 'Odometer Reading', name: 'odometer_reading', placeholder: 'Enter Odometer Reading',numeric:true },
       ].map((item, index) => (

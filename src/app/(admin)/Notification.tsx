@@ -35,6 +35,7 @@ const Notifications = () => {
   };
 
   const [refreshing, setRefreshing] = useState(false);
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -50,6 +51,7 @@ const Notifications = () => {
   } = useQuery({
     queryKey: ["notificationsForAdmin"],
     queryFn: getNotifications,
+
   });
 
   const mutation = useMutation({
@@ -57,13 +59,15 @@ const Notifications = () => {
     onSuccess: () => {
       console.log("Notification Read");
       Alert.alert("Success", "Notification Read");
+      handleRefresh()
     },
     onError: (error) => {
       // Check if the error response contains a message
       const errorMessage =
         error.response?.data?.message || "Request Failed, Try Again";
+        // error.data?.message || "Request Failed, Try Again";
 
-      console.error("Error submitting data:", error);
+      console.error("Error submitting data:", error.data?.message);
       Alert.alert("Error", `${errorMessage}`);
      
     },
@@ -71,7 +75,13 @@ const Notifications = () => {
 
   const handleSubmit = (notificationId) => {
     mutation.mutate({ id: notificationId });
+    setShowUnreadOnly(true)
   };
+
+    // Filter notifications based on showUnreadOnly state
+    const filteredNotifications = showUnreadOnly
+    ? notificationsData.filter((notification) => notification.is_read === 1)
+    : notificationsData;
 
   const renderNotificationItem = ({ item }) => (
     <TouchableOpacity onPress={() => handleSubmit(item.id)}>
@@ -138,18 +148,19 @@ const Notifications = () => {
         </View>
       );
     }
-    if (notificationsData.length === 0) {
+    if (filteredNotifications.length === 0) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-gray-500">No Notifications found.</Text>
+          {/* <Text className="text-lg text-gray-500">No Notifications found.</Text> */}
+          {showUnreadOnly ? "No unread notifications found." : "No notifications found."}
         </View>
       );
     }
 
     return (
       <FlatList
-        data={notificationsData}
+        data={filteredNotifications}
         renderItem={renderNotificationItem}
         keyExtractor={(item) => item.id.toString()}
         className="mt-4"
@@ -173,6 +184,17 @@ const Notifications = () => {
         <Text className="text-[#1D1E20] font-extrabold text-2xl  mb-3">
           Notification
         </Text>
+
+        <TouchableOpacity
+            onPress={() => setShowUnreadOnly(!showUnreadOnly)}
+            className={`px-3 py-1 rounded-lg ${
+              showUnreadOnly ? "bg-[#394F91]" : "bg-gray-300"
+            }`}
+          >
+            <Text className={`${showUnreadOnly ? "text-black" : "text-gray-700"}`}>
+              {showUnreadOnly ? "Unread Only" : "Show All"}
+            </Text>
+          </TouchableOpacity>
 
         <View>
           {/* <Text className="text-[#A5A6AB] font-normal text-xs mb-4">

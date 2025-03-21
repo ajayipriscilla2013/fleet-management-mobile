@@ -14,6 +14,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import API from "@/src/services/api";
 import { setErrorMap, z } from "zod";
+import { Picker } from "@react-native-picker/picker";
 
 const loadingPointSchema= z.object({
   loading_qty:z.number().min(1,"Loading Quantity is required"),
@@ -93,8 +94,53 @@ const LoadingPointScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
+      <View className="mb-4">
+        <View className="flex-col justify-between">
+          <View className="flex-row w-full  justify-between">
+            <Text className="text-gray-600 mb-[10px]">Confirm Tonnage loaded</Text>
+            {errors.loading_qty && (
+              <Text className="text-red-500 text-sm">
+                {errors.loading_qty}
+              </Text>
+            )}
+          </View>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: focusedField ? "#C4CCF0" : "#D1D3D8",
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+            className={`border bg-white rounded-md w-full  p-2 h-[60px] ${
+              focusedField === formData.loading_qty
+                ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+                : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+            }`}
+          >
+            <Picker
+              selectedValue={formData.loading_qty}
+              onValueChange={(itemValue) => {
+                setFormData({ ...formData, loading_qty: itemValue });
+                // setIsFocused(true);
+              }}
+              className={`border bg-white rounded-md  p-2 h-[60px] ${
+                focusedField === formData.loading_qty
+                  ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+                  : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+              }`}
+            >
+              <Picker.Item label="Select Tonnage Loaded (in Tonns)" value="" />
+              {[{name:"30 Tonns",value:30},{name:"45 Tons",value:45}, {name:"60 Tons",value:60}]
+              
+              ?.map((tonnage, index) => (
+                <Picker.Item key={index} label={tonnage.name} value={tonnage.value} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </View>
         {[
-          { label: "Tonnage loaded",name:"loading_qty", value: "Enter tonnage loaded",numeric:true },
+          // { label: "Tonnage loaded",name:"loading_qty", value: "Enter tonnage loaded",numeric:true },
           { label: "Remarks",name:"remarks", placeholder: "Enter Remarks" },
         ].map((item, index) => (
           <View key={index} className="mb-4">

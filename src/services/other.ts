@@ -67,6 +67,21 @@ export const getDrivers = async () => {
   }
 };
 
+export const getCustomer = async (customerId) => {
+  try {
+    const response = await API.post("trip/trip.php", {
+      customer_id: customerId,
+      dataname: "getCustomer",
+    });
+    // console.log(response.data);
+
+    return response.data.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
 export const getDriver = async (driverId) => {
   try {
     const response = await API.post("trip/trip.php", {
@@ -254,14 +269,14 @@ export const getFuelAttendantTripsToBeFueled= async()=>{
  const vendor_agent_id= await AsyncStorage.getItem("user_id")
   try {
     const response = await API.post("trip/trip.php",{
-      dataname:"getTripsToBeFueledByVendor",
+      dataname:"getFuelReqToBeFueledByVendor",
       vendor_agent_id
     })
     // console.log("tripsToBEfUELDED",response.data.data);
     
     return response.data.data
   } catch (error) {
-    
+    console.log(error);
   }
 }
 
@@ -269,13 +284,89 @@ export const getFuelAttendantTripsFueled= async()=>{
   const vendor_agent_id= await AsyncStorage.getItem("user_id")
   try {
     const response = await API.post("trip/trip.php",{
-      dataname:"getTripsFueledByVendor",
+      dataname:"getReqsFueledByVendor",
       vendor_agent_id
     })
     // console.log("tripsfUELDED",response.data.data);
     
     return response.data.data
   } catch (error) {
+    console.log(error);
+  }
+}
+
+export const getFuelRequests= async()=>{
+  
+  try {
+    const response = await API.post("trip/trip.php",{
+      dataname:"getFuelRequests",
+     
+    })
+   
+    
+    return response.data.data
+  } catch (error) {
+    console.log(error);
+  }
+}
+// export const requestFuel= async()=>{
+//   const user_id= await AsyncStorage.getItem("user_id")
+//   try {
+//     const response = await API.post("trip/trip.php",{
+//       dataname:"requestFuel",
+//      driver_id: user_id,
+//     })
+   
+//       // Check response status manually
+//       if (response.status < 200 || response.status >= 300) {
+//         throw new Error(response.data?.message || "Request failed.");
+//       }
+  
+//     console.log(response.data.data.data);
+//     return response.data.data
+    
+//   } catch (error) {
+//     // console.log(error);
+//     throw error.response || new Error("Network error");
+//   }
+// }
+
+export const requestFuel = async () => {
+  const user_id = await AsyncStorage.getItem("user_id");
+
+  try {
+    const response = await API.post("trip/trip.php", {
+      dataname: "requestFuel",
+      driver_id: user_id,
+    });
+
+    // Ensure the function returns the correct data format
+    if (response.status >= 200 && response.status < 300) {
+      console.log("API Success Response:", response.data);
+      return response.data; // Return the whole response object
+    } else {
+      throw new Error(response.data?.message || "Request failed.");
+    }
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error.response?.data || new Error("Network error");
+  }
+};
+
+export const confirmFuelRequest=async(fuelRequestId,vendorId,status)=>{
+  try {
+    const response = await API.post("trip/trip.php",{
+      fuel_request_id: fuelRequestId,
+      status: status, //approved/declined
+      vendor_id: vendorId,
+      admin_id: "fma3998",
+      dataname: "confirmFuelRequest"
+    })
+    console.log(response.data);
+    
+    return response.data
+  } catch (error) {
+    console.log(error);
     
   }
 }

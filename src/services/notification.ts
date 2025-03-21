@@ -28,6 +28,7 @@ export const markNotificationsRead = async (id) => {
       return response.data.data
     } catch (error) {
       console.log("Mark Notifications Read Error",error);
+      throw error.response
       
     }
   };

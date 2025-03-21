@@ -51,7 +51,7 @@ const Trip = () => {
     error: toBeFueledError,
     refetch: refetchToBeFueled,
   } = useQuery({
-    queryKey: ["getTripsToBeFueledByVendor"],
+    queryKey: ["getFuelReqToBeFueledByVendor"],
     queryFn: getFuelAttendantTripsToBeFueled,
   });
 
@@ -61,7 +61,7 @@ const Trip = () => {
     error: fueledError,
     refetch: refetchFueled,
   } = useQuery({
-    queryKey: ["getTripsFueledByVendor"],
+    queryKey: ["getRequestsFueledByVendor"],
     queryFn: getFuelAttendantTripsFueled,
   });
 
@@ -79,12 +79,12 @@ const Trip = () => {
 
   const renderToBeFueledTripsItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => handlePress(`/screens/fuelAttendant/${item.trip_id}`)}
+      onPress={() => handlePress(`/screens/fuelAttendant/confirmFuel/${item.request_id}`)}
     >
       <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold text-base text-[#1D1E20]">
-            {item.trip_id}
+            {item.truck_model}
           </Text>
           <Badge label="To be Fueled" variant="initiated" />
         </View>
@@ -94,14 +94,14 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.origin_name} to {item.destination_name}
+              {item.driver_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {dayjs(item.start_date).format("LL")} to{" "}
-                {dayjs(item.end_date).format("LL")}
+                {dayjs(item.created_at).format("LL")} {" "}
+              {item.truck_plate_number}
               </Text>
             </View>
           </View>
@@ -163,7 +163,7 @@ const Trip = () => {
       <FlatList
         data={toBeFueledData}
         renderItem={renderToBeFueledTripsItem}
-        keyExtractor={(item) => item.trip_id.toString()}
+        keyExtractor={(item) => item.request_id}
         contentContainerStyle={{ paddingBottom: 150 }}
         className="mt-4"
         refreshControl={

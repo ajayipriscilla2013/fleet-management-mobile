@@ -39,7 +39,7 @@ const ZoomedCameraComponent: React.FC<ZoomedCameraProps> = ({ onImageCaptured,on
           base64: true,
           quality: 1
         });
-        console.log(photo);
+        // console.log(photo);
         
 
         // Pass the full image with base64 for backend submission

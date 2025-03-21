@@ -30,7 +30,7 @@ import Bg from "@/assets/images/image4.png";
 import Headphone from "@/assets/svgs/music.svg";
 
 import { useQuery } from '@tanstack/react-query';
-import { getDrivers, getTrucks, getVendors } from "@/src/services/other";
+import { getCustomers, getDrivers, getTrucks, getVendors } from "@/src/services/other";
 import { useAuth } from "@/src/context/AuthContext";
 
 
@@ -67,6 +67,14 @@ const Home = () => {
   } = useQuery({
     queryKey: ['drivers'], 
     queryFn: getDrivers});
+
+    const {
+      data: customersData,
+      isLoading: isLoadingCustomers,
+      isError: isErrorCustomers,
+    } = useQuery({
+      queryKey: ['customers'], 
+      queryFn: getCustomers});
 
 
     const fallbackDriverImage = "https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=800";
@@ -118,6 +126,38 @@ const Home = () => {
     );
 
     const renderDriverSkeleton = () => (
+      <View className="flex-row mt-2">
+        <View className="items-center mr-4">
+        <SkeletonLoader width={51} height={51} borderRadius={25} />
+        <SkeletonLoader width={80} height={15} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={50} height={10} />
+          <SkeletonLoader width={50} height={10} />
+        </View>
+      </View>
+
+      <View className="items-center mr-4">
+        <SkeletonLoader width={51} height={51} borderRadius={25} />
+        <SkeletonLoader width={80} height={15} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={50} height={10} />
+          <SkeletonLoader width={50} height={10} />
+        </View>
+      </View>
+
+      <View className="items-center mr-4">
+        <SkeletonLoader width={51} height={51} borderRadius={25} />
+        <SkeletonLoader width={80} height={15} />
+        <View className="flex flex-row gap-2">
+          <SkeletonLoader width={50} height={10} />
+          <SkeletonLoader width={50} height={10} />
+        </View>
+      </View>
+      </View>
+      
+    );
+
+    const renderCustomerSkeleton = () => (
       <View className="flex-row mt-2">
         <View className="items-center mr-4">
         <SkeletonLoader width={51} height={51} borderRadius={25} />
@@ -220,6 +260,27 @@ const Home = () => {
     </View>
   );
 
+   // // Render Item for Customers
+   const renderCustomerItem = ({ item }) => (
+    <View className="items-center mr-4">
+      <Image
+        source={{ uri: item.image || fallbackDriverImage }}
+        className="h-[51px] w-[51px] rounded-full bg-slate-400"
+      />
+      <Text className="mt-2 text-sm font-bold">{item.username}</Text>
+      <View className="flex flex-row gap-2">
+        {/* <View className="flex flex-row items-center ">
+          <LocationIcon />
+          <Text className="text-[#1D1E20] text-xs">{item.user_id}</Text>
+        </View> */}
+        <View className="flex flex-row items-center">
+          <StarIcon />
+          <Text className="text-[#1D1E20] text-xs"> {item.email}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
   // // Render Item for Trucks
   const renderTruckItem = ({ item }) => (
     <View className="mr-4">
@@ -277,6 +338,24 @@ const Home = () => {
     )
   }
 
+  const renderCustomerContent =()=>{
+    if(isLoadingDrivers){
+      return(
+        renderCustomerSkeleton()
+      )
+    }
+    return(
+      <FlatList
+      horizontal
+      data={customersData}
+      renderItem={renderCustomerItem}
+      keyExtractor={(item) => item.id.toString()}
+      showsHorizontalScrollIndicator={false}
+      className="mt-4"
+    />
+    )
+  }
+
   const renderTrucksContent =()=>{
     if(isLoadingTrucks){
       return (
@@ -301,8 +380,8 @@ const Home = () => {
 
     <View className="flex-1 bg-[#F9F9F9] ">
       <View className="rounded-b-3xl flex-col w-full">
-        <ImageBackground source={Bg} resizeMode="stretch" className="h-[211px] ">
-          <View className="flex-row justify-between items-end">
+        <ImageBackground source={Bg} resizeMode="cover" className="h-[211px]  w-full ">
+          <View className="flex-row justify-between  items-end">
             <View className="mt-28 mx-6">
               <Text className="text-2xl w-2/3 text-white font-semibold">
                 Welcome,{" "}
@@ -358,6 +437,23 @@ const Home = () => {
             </TouchableOpacity>
           </View>
          {renderDriversContent()}
+        
+        </View>
+
+        {/* Customers */}
+        <View className="mt-6 mb-8 mx-6">
+          <View className="flex-row justify-between">
+            <Text className="text-lg font-semibold text-[#202020] ">
+              Customers
+            </Text>
+            <TouchableOpacity onPress={() => handlePress("/customers")}>
+              <View className="flex flex-row items-center gap-1">
+                <Text className="text-[#394F91] text-xs ">View All</Text>
+                <ArrowRight />
+              </View>
+            </TouchableOpacity>
+          </View>
+         {renderCustomerContent()}
         
         </View>
 
