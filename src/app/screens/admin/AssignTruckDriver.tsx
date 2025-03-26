@@ -226,7 +226,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
 
       
 
-
+{/* 
         <View>
   <Text className="text-gray-600 mb-[10px]">Fueling?</Text>
   <View
@@ -251,7 +251,7 @@ const AssignTruckDriverScreen = ({ onAssignDriver }) => {
       <Picker.Item label="Yes" value="1" />
     </Picker>
   </View>
-</View>
+</View> */}
 
 
         <TouchableOpacity

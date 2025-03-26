@@ -582,7 +582,7 @@ const CreateTripForm = () => {
               Assign Truck/Drivers
             </Text>
             <Text className="text-xs text-gray-400">
-              Setup Fuel Information
+              Setup Driver Information
             </Text>
           </TouchableOpacity>
          

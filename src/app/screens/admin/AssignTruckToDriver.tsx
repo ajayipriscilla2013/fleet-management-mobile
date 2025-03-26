@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '@/src/services/api';
 import { z } from 'zod';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTrucks } from '@/src/services/other';
 
 const assignDriverSchema = z.object({
@@ -13,6 +13,7 @@ const assignDriverSchema = z.object({
 });
 
 const AssignDriverToTruckScreen = () => {
+  const queryClient = useQueryClient()
   const [formData, setFormData] = useState({ driver_id: '', truck_id: '' });
   const [errors, setErrors] = useState({});
 
@@ -50,6 +51,7 @@ const AssignDriverToTruckScreen = () => {
       } else {
         Alert.alert('Assignment Unsuccessful', 'Error assigning driver to truck!');
       }
+      queryClient.invalidateQueries("driversforAssigning")
     },
     onError: (error) => {
       const errorMessage = error.response?.data?.message || 'Request Failed, Try Again';
