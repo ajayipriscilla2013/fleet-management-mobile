@@ -99,13 +99,13 @@ export const getRoleBasedRoute = (role: string): string => {
 
   switch (normalizedRole) {
     case "customer":
-      return "/(customer)/Home";
+      return "/customer/";
     case "driver":
-      return "/(truckDriver)/Home";
+      return "/driver/";
     case "admin":
-      return "/(admin)/Home";
+      return "/admin/";
     case "fuelattendant":
-      return "/(fuelAttendant)/Home";
+      return "/fuel-attendant/";
     default:
       return "/";
   }

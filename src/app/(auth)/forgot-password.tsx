@@ -112,12 +112,12 @@ const LoginPage = () => {
     <View className="flex-1 bg-white  px-6">
     
 
-      <View className="mb-8 mx-auto">
+      {/* <View className="mb-8 mx-auto">
         <Image
           source={Logo}
           className="w-10 h-10"
         />
-      </View>
+      </View> */}
 
       <Text className=" text-2xl w-1/2 font-extrabold">Oops! Forget 
       </Text>
