@@ -108,3 +108,19 @@ export const DriverRequestToCloseTrip = async (tripId) => {
     throw error;
   }
 };
+
+export const getFuelRequestStatus = async () => {
+  const driverId = await AsyncStorage.getItem("user_id");
+  try {
+    const response = await API.post("trip/trip.php", {
+      driver_id: driverId,
+      dataname: "getFuelRequestStatus"
+    });
+    
+    
+    return response.data
+  } catch (error) {
+    console.error("Error fetching trips:", error);
+    throw error;
+  }
+};
