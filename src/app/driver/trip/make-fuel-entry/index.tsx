@@ -83,7 +83,7 @@ const fuelEntrySchema = z.object({
 
 const GetFuelScreen = () => {
   const { tripId } = useLocalSearchParams();
-  console.log("tripid for fuel", tripId);
+  
 
   const queryClient = useQueryClient();
   

@@ -75,7 +75,7 @@ const  FuelAttendantLayout =() => {
           tabBarIcon: ({ color }) => (
             <TruckIcon fill={color}   />
           ),
-          title: "Trip",
+          title: "Fuelling",
           headerShown:false
         }}
       />

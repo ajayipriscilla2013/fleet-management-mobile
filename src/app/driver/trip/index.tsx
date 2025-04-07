@@ -335,7 +335,7 @@ import {
   getInitiatedTripsForDriver,
   getInProgressTripsForDriver,
 } from "@/src/services/drivers";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import EmptyScreen from "@/assets/svgs/empty.svg";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -348,6 +348,7 @@ const Trip = () => {
   const tripId = 12334
   const router = useRouter();
   const { tab } = useLocalSearchParams();
+  const queryClient = useQueryClient()
 
   const [activeTab, setActiveTab] = useState(tab || "initiated");
   const [refreshing, setRefreshing] = useState(false); // State to manage refreshing
@@ -370,6 +371,7 @@ const Trip = () => {
       Alert.alert("Success", "Fuel Requested");
       // Refetch the fuel status after a successful request
       refetchFuelStatus();
+      queryClient.invalidateQueries("fuelRequestStatus")
     },
     onError: (error) => {
       // Check if the error response contains a message
@@ -435,6 +437,7 @@ const Trip = () => {
   } = useQuery({
     queryKey: ["deliveredTripsForDriver"],
     queryFn: getCompletedTripsForDriver,
+   
   });
 
   useEffect(() => {
@@ -559,6 +562,72 @@ const Trip = () => {
   };
 
   // Determine which button to render based on the fuel request status
+  // const renderFuelButton = () => {
+  //   if (isFuelStatusLoading) {
+  //     return (
+  //       <TouchableOpacity
+  //         className="absolute bottom-4 right-4 w-1/3 bg-gray-400 p-4 rounded-lg items-center z-10"
+  //         disabled={true}
+  //       >
+  //         <ActivityIndicator color="#ffffff" />
+  //       </TouchableOpacity>
+  //     );
+  //   }
+
+  //   // Check if there's a fuel request and if its status is approved
+  //   const isApproved = fuelRequestData?.fuel_request?.status !== "approved";
+  //   const fuelingStatus = fuelRequestData?.fuel_request?.fueling_status !== "not_fueled";
+  //   const notFound = fuelRequestData?.error === "Not Found"
+
+  //   console.log(fuelRequestData);
+    
+    
+  //   // console.log("fuelRequestData?",fuelRequestData.status  );
+  //   // console.log("isApproved?",isApproved);
+    
+
+  //   if (isApproved && fuelingStatus) {
+  //     return (
+  //       <TouchableOpacity
+  //         onPress={handleMakeFuelEntry}
+  //         className="absolute bottom-4 right-4 w-1/3  bg-[#394F91] p-4 rounded-lg items-center z-10"
+  //       >
+  //         <Text className="text-white font-bold text-xs">Make Fuel Entry</Text>
+  //       </TouchableOpacity>
+  //     );
+  //   } 
+  //   // else if (notFound) {
+  //   //   return (
+  //   //     <TouchableOpacity
+  //   //       onPress={handleFuelRequest}
+  //   //       className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
+  //   //       disabled={mutation.isPending}
+  //   //     >
+  //   //       {mutation.isPending ? (
+  //   //         <ActivityIndicator color="#ffffff" />
+  //   //       ) : (
+  //   //         <Text className="text-white font-bold">Get Fuel</Text>
+  //   //       )}
+  //   //     </TouchableOpacity>
+  //   //   );
+  //   // } 
+  //   else {
+  //     return (
+  //       <TouchableOpacity
+  //         onPress={handleFuelRequest}
+  //         className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
+  //         disabled={mutation.isPending}
+  //       >
+  //         {mutation.isPending ? (
+  //           <ActivityIndicator color="#ffffff" />
+  //         ) : (
+  //           <Text className="text-white text-xs font-bold">Request for Fuel</Text>
+  //         )}
+  //       </TouchableOpacity>
+  //     );
+  //   }
+  // };
+
   const renderFuelButton = () => {
     if (isFuelStatusLoading) {
       return (
@@ -570,24 +639,12 @@ const Trip = () => {
         </TouchableOpacity>
       );
     }
-
-    // Check if there's a fuel request and if its status is approved
-    const isApproved = fuelRequestData?.fuel_request?.status === "approved";
+  
+    // Check if the API returned a "Not Found" error
+    const notFound = !fuelRequestData || fuelRequestData.error === "Not Found";
     
-    console.log("fuelRequestData?",fuelRequestData.status  );
-    // console.log("isApproved?",isApproved);
-    
-
-    if (isApproved) {
-      return (
-        <TouchableOpacity
-          onPress={handleMakeFuelEntry}
-          className="absolute bottom-4 right-4 w-1/3  bg-[#394F91] p-4 rounded-lg items-center z-10"
-        >
-          <Text className="text-white font-bold text-xs">Make Fuel Entry</Text>
-        </TouchableOpacity>
-      );
-    } else {
+    // If no fuel request exists, show "Request for Fuel" button
+    if (notFound) {
       return (
         <TouchableOpacity
           onPress={handleFuelRequest}
@@ -597,11 +654,54 @@ const Trip = () => {
           {mutation.isPending ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text className="text-white font-bold">Get Fuel</Text>
+            <Text className="text-white text-xs font-bold">Request for Fuel</Text>
           )}
         </TouchableOpacity>
       );
     }
+    
+    // If request exists and is approved and not yet fueled, show "Make Fuel Entry" button
+    const isApproved = fuelRequestData?.fuel_request?.status === "approved";
+    const notFueledYet = fuelRequestData?.fuel_request?.fueling_status === "not_fueled";
+    
+    if (isApproved && notFueledYet) {
+      return (
+        <TouchableOpacity
+          onPress={handleMakeFuelEntry}
+          className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
+        >
+          <Text className="text-white font-bold text-xs">Make Fuel Entry</Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    // If request exists but is pending, show a disabled or status button
+    const isPending = fuelRequestData?.fuel_request?.status === "pending";
+    if (isPending) {
+      return (
+        <TouchableOpacity
+          className="absolute bottom-4 right-4 w-1/3 bg-[#FFA500] p-4 rounded-lg items-center z-10"
+          disabled={true}
+        >
+          <Text className="text-white font-bold text-xs">Fuel Request Pending</Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    // Default case (e.g., already fueled or other status)
+    return (
+      <TouchableOpacity
+        onPress={handleFuelRequest}
+        className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
+        disabled={mutation.isPending}
+      >
+        {mutation.isPending ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <Text className="text-white text-xs font-bold">Request for Fuel</Text>
+        )}
+      </TouchableOpacity>
+    );
   };
 
   return (

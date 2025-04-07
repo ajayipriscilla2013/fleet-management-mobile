@@ -57,7 +57,7 @@ const TruckIcon=({ fill = "#000", width = 24, height = 24 })=>(
 
 const  CustomerLayout =() => {
   return (
-    <ProtectedRoute role="customer">
+    <ProtectedRoute role="Customer">
     <Tabs screenOptions={{ tabBarShowLabel: true, headerShown: true ,tabBarActiveTintColor: '#394F91', // Active tab color (e.g., green)
       tabBarInactiveTintColor: '#999999'}}>
       <Tabs.Screen
@@ -110,14 +110,14 @@ const  CustomerLayout =() => {
        <Tabs.Screen
         name="trucks"
         options={{
-          href: null, // This prevents it from appearing in tabs
+          href: null, 
           headerShown:false
         }}
       />
        <Tabs.Screen
         name="vendors"
         options={{
-          href: null, // This prevents it from appearing in tabs
+          href: null, 
           headerShown:false
         }}
       />

@@ -69,7 +69,7 @@ export const getInProgressTripsForDriver = async () => {
   }
 };
 
-export const getTripDetailsForDriver = async (trip_id) => {
+export const getTripDetailsForDriver = async (trip_id:string) => {
   const userId = await AsyncStorage.getItem("user_id");
   try {
     const response = await API.post("trip/trip.php", {
@@ -92,7 +92,7 @@ export const getTripDetailsForDriver = async (trip_id) => {
   }
 };
 
-export const DriverRequestToCloseTrip = async (tripId) => {
+export const DriverRequestToCloseTrip = async (tripId:string) => {
   const driverId = await AsyncStorage.getItem("user_id");
   try {
     const response = await API.post("trip/trip.php", {

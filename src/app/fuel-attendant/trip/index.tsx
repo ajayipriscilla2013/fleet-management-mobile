@@ -183,7 +183,7 @@ const Trip = () => {
       <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold text-base text-[#1D1E20]">
-            {item.trip_id}
+            {item.truck_model}
           </Text>
           <Badge label="Fueled" variant="initiated" />
         </View>
@@ -193,14 +193,14 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {item.origin_name} to {item.destination_name}
+                {item.driver_name} 
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
-                {dayjs(item.start_date).format("LL")} to{" "}
-                {dayjs(item.end_date).format("LL")}
+                {item.truck_plate_number} - {""}
+                {item.truck_model}
               </Text>
             </View>
           </View>
@@ -253,7 +253,7 @@ const Trip = () => {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-gray-500">No trips found.</Text>
+          <Text className="text-lg text-gray-500">No data found.</Text>
         </View>
       );
     }
@@ -262,7 +262,7 @@ const Trip = () => {
       <FlatList
         data={fueledData}
         renderItem={renderTripsFeuledIem}
-        keyExtractor={(item) => item.trip_id.toString()}
+        keyExtractor={(item) => item.request_id.toString()}
         className="mt-4"
         contentContainerStyle={{ paddingBottom: 150 }}
         refreshControl={
@@ -286,7 +286,7 @@ const Trip = () => {
     >
       <View className="bg-[#F9F9F9] flex-1">
         <View className="flex-row items-center justify-between mx-6">
-          <Text className="text-[#1D1E20] font-extrabold text-2xl">Trips</Text>
+          <Text className="text-[#1D1E20] font-extrabold text-2xl">Fuelling</Text>
           <Text className="text-[#394F91] text-sm">Need Help?</Text>
         </View>
 
