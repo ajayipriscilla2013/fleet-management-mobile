@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,7 +13,11 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   getCustomers,
   getLoadingPoint,
@@ -44,7 +47,7 @@ const tripSchema = z.object({
   is_customer_confirmation_required: z.enum(["0", "1"]),
   loading_qty: z.coerce.number().min(1, "Loading qty required"),
   start_date: z.coerce.date({ required_error: "Start date is required" }),
-  end_date: z.coerce.date({ required_error: "End date is required" }),  
+  end_date: z.coerce.date({ required_error: "End date is required" }),
 });
 
 const CreateTripForm = () => {
@@ -52,6 +55,7 @@ const CreateTripForm = () => {
   const [isFuelling, setIsFuelling] = useState("0");
 
   const [formData, setFormData] = useState({
+    trip_name: "",
     producttype_id: "",
     loading_point: "",
     offloading_point: "",
@@ -63,7 +67,7 @@ const CreateTripForm = () => {
     user_id: "",
   });
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const [loadingPoints, setLoadingPoints] = useState([]);
   const [offloadingPoints, setOffloadingPoints] = useState([]);
@@ -96,17 +100,24 @@ const CreateTripForm = () => {
   const createTripMutation = useMutation({
     mutationFn: async (newTrip) => {
       const user_id = await AsyncStorage.getItem("user_id");
-      API.post("trip/trip.php", {
-        ...newTrip,
-        user_id,
-        dataname: "createTrip",
-      });
+    const response = await API.post("trip/trip.php", {
+      ...newTrip,
+      user_id,
+      dataname: "createTrip",
+    });
+
+    // If your API returns { error: "..." }, treat it as an error
+    if (response.data?.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data;
     },
     onSuccess: (data) => {
       console.log("Trip created successfully", data);
       Alert.alert("Success", "Trip Created Succeefully");
       setActiveTab("assignTruckDriver");
-      queryClient.invalidateQueries('initiatedTripsForAdmin'); 
+      queryClient.invalidateQueries("initiatedTripsForAdmin");
     },
     onError: (error) => {
       // Check if the error response contains a message
@@ -115,7 +126,6 @@ const CreateTripForm = () => {
 
       console.error("Error submitting data:", errorMessage);
       Alert.alert("Error", `${errorMessage}`);
-  
     },
   });
 
@@ -153,7 +163,7 @@ const CreateTripForm = () => {
     // } else {
     //   // setModalVisible(true);
     // }
-    router.back()
+    router.back();
   };
 
   const handleAssignVendor = () => {
@@ -176,6 +186,31 @@ const CreateTripForm = () => {
   const renderTripInformation = () => {
     return (
       <>
+        <View className="mb-4">
+          <View className="fldx-row justify-between">
+            <Text className="text-gray-600 mb-[10px]">Trip Name</Text>
+            {errors.loading_qty && (
+              <Text className="mb-2" style={{ color: "red" }}>
+                {errors.loading_qty}
+              </Text>
+            )}
+          </View>
+          <TextInput
+            placeholder="Name of Trip"
+            keyboardType="default"
+            value={formData.trip_name}
+            onChangeText={(text) =>
+              setFormData({ ...formData, trip_name: text })
+            }
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className={`border bg-white   rounded-md p-2 h-[60px] ${
+              isFocused
+                ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
+                : "border-[#D1D3D8]"
+            }`}
+          />
+        </View>
         <View>
           <View className="flex-row justify-between">
             <Text className="text-gray-600 mb-[10px]">Product Type</Text>
@@ -397,49 +432,55 @@ const CreateTripForm = () => {
               </Text>
             )}
           </View>
-           <View
-                      style={{
-                        borderWidth: 1,
-                        borderColor: isFocused ? "#C4CCF0" : "#D1D3D8",
-                        borderRadius: 8,
-                        paddingVertical: 2,
-                      }}
-                      // className={`border bg-white rounded-md w-full  p-2 h-[60px] ${
-                      //     isFocused === formData.loading_qty
-                      //     ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
-                      //     : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
-                      // }`}
-                      className={`border bg-white   rounded-md p-2 h-[60px] ${
-                        isFocused
-                          ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
-                          : "border-[#D1D3D8]"
-                      }`}
-                    >
-                      <Picker
-                        selectedValue={formData.loading_qty}
-                        onValueChange={(itemValue) => {
-                          setFormData({ ...formData, loading_qty: itemValue });
-                          // setIsFocused(true);
-                        }}
-                        // className={`border bg-white rounded-md  p-2 h-[60px] ${
-                        //   focusedField === formData.loading_qty
-                        //     ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
-                        //     : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
-                        // }`}
-                        className={`border bg-white   rounded-md p-2 h-[60px] ${
-                          isFocused
-                            ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
-                            : "border-[#D1D3D8]"
-                        }`}
-                      >
-                        <Picker.Item label="Select Loading Quantity (in Tons)" value="" />
-                         {[{name:"30 Tonns",value:30},{name:"45 Tons",value:45}, {name:"60 Tons",value:60}]
-                                      
-                                      ?.map((tonnage, index) => (
-                                        <Picker.Item key={index} label={tonnage.name} value={tonnage.value} />
-                                      ))}
-                      </Picker>
-                    </View>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: isFocused ? "#C4CCF0" : "#D1D3D8",
+              borderRadius: 8,
+              paddingVertical: 2,
+            }}
+            // className={`border bg-white rounded-md w-full  p-2 h-[60px] ${
+            //     isFocused === formData.loading_qty
+            //     ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+            //     : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+            // }`}
+            className={`border bg-white   rounded-md p-2 h-[60px] ${
+              isFocused
+                ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
+                : "border-[#D1D3D8]"
+            }`}
+          >
+            <Picker
+              selectedValue={formData.loading_qty}
+              onValueChange={(itemValue) => {
+                setFormData({ ...formData, loading_qty: itemValue });
+                // setIsFocused(true);
+              }}
+              // className={`border bg-white rounded-md  p-2 h-[60px] ${
+              //   focusedField === formData.loading_qty
+              //     ? "border-[#394F91] shadow-[0px 0px 0px 4px rgba(57,79,145,0.1)]"
+              //     : "border-[#C4CCF0] shadow-[0px 1px 2px rgba(16,24,40,0.05)]"
+              // }`}
+              className={`border bg-white   rounded-md p-2 h-[60px] ${
+                isFocused
+                  ? "shadow-[0px 4px 6px rgba(238, 240, 251, 1)] border-[#C4CCF0]"
+                  : "border-[#D1D3D8]"
+              }`}
+            >
+              <Picker.Item label="Select Loading Quantity (in Tons)" value="" />
+              {[
+                { name: "30 Tonns", value: 30 },
+                { name: "45 Tons", value: 45 },
+                { name: "60 Tons", value: 60 },
+              ]?.map((tonnage, index) => (
+                <Picker.Item
+                  key={index}
+                  label={tonnage.name}
+                  value={tonnage.value}
+                />
+              ))}
+            </Picker>
+          </View>
         </View>
 
         <Text className="text-gray-600 mb-[10px]">Start Date </Text>
@@ -587,7 +628,6 @@ const CreateTripForm = () => {
               Setup Driver Information
             </Text>
           </TouchableOpacity>
-         
 
           {/* {isFuelling === "1" && (
             <>
