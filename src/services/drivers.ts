@@ -124,3 +124,18 @@ export const getFuelRequestStatus = async () => {
     throw error;
   }
 };
+
+export const getPreviousOdometer = async () => {
+  const driverId = await AsyncStorage.getItem("user_id");
+  try {
+    const response = await API.post("trip/trip.php", {
+      driver_id: driverId,
+      "dataname": "getLastOdometer"
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching odometer reading:", error);
+    throw error;
+  }
+};
