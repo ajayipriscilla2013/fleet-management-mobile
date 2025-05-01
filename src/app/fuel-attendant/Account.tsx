@@ -73,8 +73,8 @@ const Account = () => {
           text: "Change Password",
           route: "/(auth)/ChangePassword",
         },
-        { icon: MenuIcon, text: "Manage Trips",route: "/(fuelAttendant)/Trip", },
-        { icon: SecurityIcon, text: "Enable Biometrics" },
+        { icon: MenuIcon, text: "Manage Trips",route: "/fuel-attendant/trip", },
+        // { icon: SecurityIcon, text: "Enable Biometrics" },
 
         {
           icon: AtIcon,
@@ -82,7 +82,7 @@ const Account = () => {
           route: "https://charissatics.com/about-us/",
         },
         { icon: SupportIcon, text: "Support", route: "https://charissatics.com/contact-us/", },
-        { icon: StarIcon, text: "Rate our app" },
+        // { icon: StarIcon, text: "Rate our app" },
       ].map((item, index) => (
         <TouchableOpacity
         onPress={() => {
