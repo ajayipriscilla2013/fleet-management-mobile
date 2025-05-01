@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import Camera from "@/assets/svgs/Camera.svg";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '@/src/services/api';
 import { z } from 'zod';
 import ZoomedCameraComponent from '@/components/ZoomedCamera';
+import { getPreviousOdometer } from '@/src/services/drivers';
+
+
 
 // Utility function to safely parse numbers
 const safeParseFloat = (value) => {
@@ -83,11 +86,9 @@ const fuelEntrySchema = z.object({
 
 const GetFuelScreen = () => {
   const { tripId } = useLocalSearchParams();
-  
-
   const queryClient = useQueryClient();
-  
   const router = useRouter();
+  
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
   const [cameraVisible, setCameraVisible] = useState(false);
@@ -110,6 +111,68 @@ const GetFuelScreen = () => {
     driver_id: '', 
     dataname: 'makeFuelEntry',
   });
+  
+  // Get previous odometer reading using React Query
+  const { data: odometerData, isLoading: odometerLoading, error: odometerError } = useQuery({
+    queryKey: ['previousOdometer'],
+    queryFn: getPreviousOdometer
+  });
+  
+  // Handle odometer data when it's available
+  useEffect(() => {
+    if (odometerData?.data?.odometer_reading) {
+      console.log("Setting odometer reading:", odometerData.data.odometer_reading);
+      setFormData(prev => ({ 
+        ...prev, 
+        odometer_before: odometerData.data.odometer_reading 
+      }));
+    }
+  }, [odometerData]);
+
+  // Get current location
+  useEffect(() => {
+    const getLocation = async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission Denied', 'Permission to access location was denied');
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({});
+        
+        // Reverse geocode to get address
+        const geocode = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        });
+
+        if (geocode && geocode.length > 0) {
+          const address = geocode[0];
+          const locationString = [
+            address.name,
+            address.street,
+            address.city,
+            address.region,
+            address.country
+          ].filter(Boolean).join(', ');
+          
+          setFormData(prev => ({ ...prev, current_location: locationString }));
+        } else {
+          // If reverse geocoding fails, use coordinates
+          setFormData(prev => ({ 
+            ...prev, 
+            current_location: `Lat: ${location.coords.latitude.toFixed(4)}, Long: ${location.coords.longitude.toFixed(4)}` 
+          }));
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+        Alert.alert('Error', 'Failed to get current location');
+      }
+    };
+
+    getLocation();
+  }, []);
 
   const submitFuelData = async (data) => {
     const userId = await AsyncStorage.getItem("user_id");
@@ -128,7 +191,8 @@ const GetFuelScreen = () => {
       // Invalidate queries to refresh data
       queryClient.invalidateQueries("TripInfoForDriver"); 
       queryClient.invalidateQueries("inProgressTripsForDriver");
-      queryClient.invalidateQueries("fuelRequestStatus"); // Add this to refresh fuel status
+      queryClient.invalidateQueries("fuelRequestStatus");
+      queryClient.invalidateQueries("previousOdometer"); // Add this to refresh odometer data
       router.push(`/driver/trip`);
     },
     onError: (error) => {
@@ -214,12 +278,12 @@ const GetFuelScreen = () => {
   return (
     <ScrollView className="flex-1 bg-[#F9F9F9] px-6 pt-6">
       {[
-        { label: 'Current Location', name: 'current_location', placeholder: 'Enter Current Location' },
+        { label: 'Current Location', name: 'current_location', placeholder: 'Getting current location...', editable: false },
         { label: 'Fuel Price Per Litre', name: 'amount_per_liter', placeholder: 'Enter fuel price per litre', numeric: true },
         { label: 'Total Litres', name: 'liters_filled', placeholder: 'Enter total litres', numeric: true },
         { label: 'Total Fuel Price', name: 'total_amount', placeholder: 'Total fuel price', editable: false, numeric: true },
-        { label: 'Odometer Reading Before', name: 'odometer_before', placeholder: 'Enter odometer before', numeric: true },
-        { label: 'Odometer Reading After', name: 'odometer_after', placeholder: 'Enter odometer after', numeric: true },
+        { label: 'Previous Odometer Reading', name: 'odometer_before', placeholder: odometerLoading ? 'Loading previous reading...' : 'Enter odometer before', editable: false, numeric: true },
+        { label: 'Current Odometer Reading', name: 'odometer_after', placeholder: 'Enter odometer after', numeric: true },
         { label: 'Pump Reading Before', name: 'pump_reading_before', placeholder: 'Enter pump reading before', numeric: true },
         { label: 'Pump Reading After', name: 'pump_reading_after', placeholder: 'Enter pump reading after', numeric: true },
         { label: 'Name of Fuel Attendant', name: 'attendant_name', placeholder: 'Enter name of fuel attendant' },
@@ -295,10 +359,10 @@ const GetFuelScreen = () => {
       <TouchableOpacity 
         className="bg-[#394F91] rounded-2xl p-4 mt-6 mb-8" 
         onPress={handleSubmit}
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || odometerLoading}
       >
         <Text className="text-white text-center font-semibold">
-          {mutation.isPending ? 'Submitting...' : 'Submit Fuel Entry'}
+          {mutation.isPending ? 'Submitting...' : odometerLoading ? 'Loading data...' : 'Submit Fuel Entry'}
         </Text>
       </TouchableOpacity>
 

@@ -18,6 +18,8 @@ import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { z } from "zod";
 import ZoomedCameraComponent from "@/components/ZoomedCamera";
+import { confirmFuelEntry } from "@/src/services/fuelAttendant";
+import * as Location from 'expo-location';
 
 const fuelEntrySchema = z.object({
   current_location: z.string().nonempty("Current location is required"),
@@ -61,8 +63,6 @@ const FuelInformationScreen = () => {
     liters_filled: "",
     amount_per_liter: "",
     total_amount: "",
-    // odometer_before: "",
-    // odometer_after: "",
     pump_reading_before: "",
     pump_reading_after: "",
     driver_name: "",
@@ -72,28 +72,58 @@ const FuelInformationScreen = () => {
     driver_picture: "",
     dataname: "attendantFuelEntry",
   });
-  // const [images, setImages] = useState({
-  //   attendant_picture: null,
-  //   truck_tank_picture: null,
-  //   gauge_pump_picture: null,
-  //   driver_picture: null,
-  // });
+
   const [errors, setErrors] = useState({});
 
-  const submitFuelData = async (data) => {
-    const vendor_agent_id = await AsyncStorage.getItem("user_id");
-    console.log("LOOK HERE",vendor_agent_id);
-    
-    const response = await API.post("trip/trip.php", {
-      dataname: "attendantFuelEntry",
-      vendor_agent_id,
-      ...data,
-    });
-    return response.data;
-  };
+   // Get current location
+    useEffect(() => {
+      const getLocation = async () => {
+        try {
+          let { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission Denied', 'Permission to access location was denied');
+            return;
+          }
+  
+          const location = await Location.getCurrentPositionAsync({});
+          
+          // Reverse geocode to get address
+          const geocode = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          });
+  
+          if (geocode && geocode.length > 0) {
+            const address = geocode[0];
+            const locationString = [
+              address.name,
+              address.street,
+              address.city,
+              address.region,
+              address.country
+            ].filter(Boolean).join(', ');
+            
+            setFormData(prev => ({ ...prev, current_location: locationString }));
+          } else {
+            // If reverse geocoding fails, use coordinates
+            setFormData(prev => ({ 
+              ...prev, 
+              current_location: `Lat: ${location.coords.latitude.toFixed(4)}, Long: ${location.coords.longitude.toFixed(4)}` 
+            }));
+          }
+        } catch (error) {
+          console.error('Error getting location:', error);
+          Alert.alert('Error', 'Failed to get current location');
+        }
+      };
+  
+      getLocation();
+    }, []);
+  
+
 
   const mutation = useMutation({
-    mutationFn: submitFuelData,
+    mutationFn: confirmFuelEntry,
     onSuccess: () => {
       console.log("Fuel data submitted");
       Alert.alert("Success", "Fuel data confirmed");
@@ -171,7 +201,7 @@ const FuelInformationScreen = () => {
           {
             label: "Current Location",
             name: "current_location",
-            placeholder: "Ibadan",
+            placeholder: "Getting current location...",
           },
           {
             label: "Fuel Price Per Litre",
@@ -191,18 +221,6 @@ const FuelInformationScreen = () => {
             placeholder: "Enter total fuel price",
             numeric:true
           },
-          // {
-          //   label: "Odometer Reading Before",
-          //   name: "odometer_before",
-          //   placeholder: "Enter odometer",
-          //   numeric:true
-          // },
-          // {
-          //   label: "Odometer Reading After",
-          //   name: "odometer_after",
-          //   placeholder: "Enter odometer",
-          //   numeric:true
-          // },
           {
             label: "Pump Reading Before",
             name: "pump_reading_before",
