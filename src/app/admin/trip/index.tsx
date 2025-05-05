@@ -683,6 +683,7 @@ const Trip = () => {
     { value: "initiated", title: "Initiated Trips" },
     { value: "inProgress", title: "In-Progress Trips" },
     { value: "fuelRequests", title: "Fuel Requests" },
+    { value: "fuelHistory", title: "Fueling History" },
     { value: "closeTrips", title: "Close Trip Requests" },
     { value: "delivered", title: "Delivered Trips" },
   ];

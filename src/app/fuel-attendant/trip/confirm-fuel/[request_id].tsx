@@ -18,8 +18,8 @@ import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { z } from "zod";
 import ZoomedCameraComponent from "@/components/ZoomedCamera";
-import { confirmFuelEntry } from "@/src/services/fuelAttendant";
 import * as Location from 'expo-location';
+import { confirmFuelEntry } from "@/src/services/fuelAttendant";
 
 const fuelEntrySchema = z.object({
   current_location: z.string().nonempty("Current location is required"),

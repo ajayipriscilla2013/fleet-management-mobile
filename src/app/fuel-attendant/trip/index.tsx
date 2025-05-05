@@ -3,7 +3,6 @@ import {
   SafeAreaView,
   Text,
   View,
-  Pressable,
   TouchableOpacity,
   TextInput,
   Platform,
@@ -12,76 +11,129 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
-import { router, Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import SearchIcon from "@/assets/svgs/search.svg";
 import FilterIcon from "@/assets/svgs/filter.svg";
-import ClockIcon from "@/assets/svgs/clock.svg";
 import LocationIcon from "@/assets/svgs/location2.svg";
 import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
 import { Badge } from "@/components/Badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import EmptyScreen from "@/assets/svgs/empty.svg";
-import {
-  getFuelAttendantTripsFueled,
-  getFuelAttendantTripsToBeFueled,
-} from "@/src/services/other";
+import SkeletonLoader from "@/components/TripsSkeletonLoader";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import SkeletonLoader from "@/components/TripsSkeletonLoader";
+import { 
+  getFuelReqToBeFueledByVendor, 
+  getReqsFueledByVendor 
+} from "@/src/services/fuelAttendant";
 
 dayjs.extend(localizedFormat);
 
 const Trip = () => {
   const router = useRouter();
   const { tab } = useLocalSearchParams();
+  
+  const [activeTab, setActiveTab] = useState(tab || "toBeFueled");
+  const [refreshing, setRefreshing] = useState(false);
+
   const handlePress = (path) => {
     router.push(path);
   };
 
-  const [activeTab, setActiveTab] = useState(tab || "toBeFueled");
-  const [refreshing, setRefreshing] = useState(false);
-
+  // To Be Fueled data query
   const {
-    data: toBeFueledData = [],
+    data: toBeFueledPages = {},
     isLoading: isToBeFueledProgressLoading,
     error: toBeFueledError,
     refetch: refetchToBeFueled,
-  } = useQuery({
+    fetchNextPage: fetchNextToBeFueledPage,
+    hasNextPage: hasToBeFueledNextPage,
+    isFetchingNextPage: isFetchingToBeFueledNextPage
+  } = useInfiniteQuery({
     queryKey: ["getFuelReqToBeFueledByVendor"],
-    queryFn: getFuelAttendantTripsToBeFueled,
+    queryFn: getFuelReqToBeFueledByVendor,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
+  // Fueled data query
   const {
-    data: fueledData = [],
-    isLoading: fueledProgressLoading,
+    data: fueledPages = {},
+    isLoading: isFueledProgressLoading,
     error: fueledError,
     refetch: refetchFueled,
-  } = useQuery({
-    queryKey: ["getRequestsFueledByVendor"],
-    queryFn: getFuelAttendantTripsFueled,
+    fetchNextPage: fetchNextFueledPage,
+    hasNextPage: hasFueledNextPage,
+    isFetchingNextPage: isFetchingFueledNextPage
+  } = useInfiniteQuery({
+    queryKey: ["getReqsFueledByVendor"],
+    queryFn: getReqsFueledByVendor,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
-  const handleTripsFueledRefresh=async()=>{
-    setRefreshing(true);
-    await refetchFueled(), 
-    setRefreshing(false);
-  }
+  // Extract the flat data from pages
+  const toBeFueledData = toBeFueledPages.pages?.flatMap(page => page.data) || [];
+  const fueledData = fueledPages.pages?.flatMap(page => page.data) || [];
 
-  const handleTripsToBeFueledRefresh=async()=>{
+  // Handle refresh for "To Be Fueled" tab
+  const handleToBeFueledRefresh = async () => {
     setRefreshing(true);
-    await refetchToBeFueled(), 
+    await refetchToBeFueled();
     setRefreshing(false);
-  }
+  };
+
+  // Handle refresh for "Fueled" tab
+  const handleFueledRefresh = async () => {
+    setRefreshing(true);
+    await refetchFueled();
+    setRefreshing(false);
+  };
+
+  // Load more data for "To Be Fueled" tab
+  const loadMoreToBeFueledData = () => {
+    if (hasToBeFueledNextPage && !isFetchingToBeFueledNextPage) {
+      fetchNextToBeFueledPage();
+    }
+  };
+
+  // Load more data for "Fueled" tab
+  const loadMoreFueledData = () => {
+    if (hasFueledNextPage && !isFetchingFueledNextPage) {
+      fetchNextFueledPage();
+    }
+  };
+
+  const renderFooter = (hasNextPage, isFetchingNextPage, dataLength) => {
+    if (isFetchingNextPage) {
+      return (
+        <View className="py-4 flex items-center justify-center">
+          <ActivityIndicator size="small" color="#394F91" />
+          <Text className="text-gray-500 mt-2">Loading more...</Text>
+        </View>
+      );
+    }
+    
+    if (!hasNextPage && dataLength > 0) {
+      return (
+        <View className="py-4 flex items-center justify-center">
+          <Text className="text-gray-500 text-sm">
+            End of results
+          </Text>
+        </View>
+      );
+    }
+    
+    return null;
+  };
 
   const renderToBeFueledTripsItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => handlePress(`/fuel-attendant/trip/confirm-fuel/${item.request_id}`)}
     >
-      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
+      <View className="flex h-[90px] mx-3 gap-2 rounded-lg mb-2 py-[13px] px-[18px] bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold text-base text-[#1D1E20]">
             {item.truck_model}
@@ -94,14 +146,48 @@ const Trip = () => {
             <View className="flex-row items-center gap-1">
               <LocationIcon />
               <Text className="text-xs text-[#A5A6AB]">
-              {item.driver_name}
+                {item.driver_name}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
               <CalendarIcon />
               <Text className="text-xs text-[#A5A6AB]">
                 {dayjs(item.created_at).format("LL")} {" "}
-              {item.truck_plate_number}
+                {item.truck_plate_number}
+              </Text>
+            </View>
+          </View>
+          <ArrowIcon />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderFueledTripsItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => handlePress(`/fuel-attendant/trip/view-fueled/${item.request_id}`)}
+    >
+      <View className="flex h-[90px] mx-3 gap-2 rounded-lg mb-2 py-[13px] px-[18px] bg-white">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-semibold text-base text-[#1D1E20]">
+            {item.truck_model}
+          </Text>
+          <Badge label="Fueled" variant="initiated" />
+        </View>
+
+        <View className="flex flex-row items-end justify-between">
+          <View>
+            <View className="flex-row items-center gap-1">
+              <LocationIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {item.driver_name}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <CalendarIcon />
+              <Text className="text-xs text-[#A5A6AB]">
+                {dayjs(item.created_at).format("LL")} {" "}
+                {item.truck_plate_number}
               </Text>
             </View>
           </View>
@@ -112,7 +198,7 @@ const Trip = () => {
   );
 
   const renderToBeFueledTripsContent = () => {
-    if (refreshing) {
+    if (refreshing || isToBeFueledProgressLoading) {
       return (
         <View>
           <SkeletonLoader />
@@ -121,25 +207,16 @@ const Trip = () => {
         </View>
       );
     }
-    if (isToBeFueledProgressLoading) {
-      <View className="flex items-center justify-center mt-10">
-        {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
-        <ActivityIndicator />
-      </View>;
-    }
 
     if (toBeFueledError) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          {/* <Text className="text-lg text-red-500">
-            Error: {toBeFueledError.message}
-          </Text> */}
           <Text className="text-lg text-red-500">
             Request Failed, Try Again
           </Text>
           <TouchableOpacity
-            className="bg-[#394F91] rounded-2xl p-4"
+            className="bg-[#394F91] rounded-2xl p-4 mt-4"
             onPress={() => refetchToBeFueled()}
           >
             <Text className="text-white text-center font-semibold">Retry</Text>
@@ -160,58 +237,45 @@ const Trip = () => {
     }
 
     return (
+      <>
+       <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-gray-500">
+                  {toBeFueledData.length} fuel requests
+                </Text>
+                {/* {toBeFueledData && (
+                  <Text className="text-[#394F91]">
+                    Page {toBeFueledData?.length} {hasToBeFueledNextPage ? "+" : ""}
+                  </Text>
+                )} */}
+              </View>
       <FlatList
         data={toBeFueledData}
         renderItem={renderToBeFueledTripsItem}
-        keyExtractor={(item) => item.request_id}
-        contentContainerStyle={{ paddingBottom: 150 }}
-        className="mt-4"
+        keyExtractor={(item, index) => `${item.request_id || index}`}
+        contentContainerStyle={{ paddingBottom: 200 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleTripsToBeFueledRefresh}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleToBeFueledRefresh} />
+        }
+        onEndReached={loadMoreToBeFueledData}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={() => renderFooter(
+          hasToBeFueledNextPage, 
+          isFetchingToBeFueledNextPage, 
+          toBeFueledData.length
+        )}
+        ListEmptyComponent={
+          <View className="flex-1 justify-center items-center py-10">
+            <Text className="text-gray-500">No fuel requests found</Text>
+          </View>
         }
       />
+
+</>
     );
   };
 
-  const renderTripsFeuledIem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => handlePress(`/screens/fuelAttendant/${item.trip_id}`)}
-    >
-      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-semibold text-base text-[#1D1E20]">
-            {item.truck_model}
-          </Text>
-          <Badge label="Fueled" variant="initiated" />
-        </View>
-
-        <View className="flex flex-row items-end justify-between">
-          <View>
-            <View className="flex-row items-center gap-1">
-              <LocationIcon />
-              <Text className="text-xs text-[#A5A6AB]">
-                {item.driver_name} 
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-1">
-              <CalendarIcon />
-              <Text className="text-xs text-[#A5A6AB]">
-                {item.truck_plate_number} - {""}
-                {item.truck_model}
-              </Text>
-            </View>
-          </View>
-          <ArrowIcon />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderTripsFeuledContent = () => {
-    if (refreshing) {
+  const renderFueledTripsContent = () => {
+    if (refreshing || isFueledProgressLoading) {
       return (
         <View>
           <SkeletonLoader />
@@ -220,27 +284,16 @@ const Trip = () => {
         </View>
       );
     }
-    if (fueledProgressLoading) {
-      return (
-        <View className="flex items-center justify-center mt-10">
-          {/* <Text className="text-lg text-gray-500">Loading...</Text> */}
-          <ActivityIndicator />
-        </View>
-      );
-    }
 
     if (fueledError) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          {/* <Text className="text-lg text-red-500">
-              Error: {fueledError.message}
-            </Text> */}
           <Text className="text-lg text-red-500">
             Request Failed, Try Again
           </Text>
           <TouchableOpacity
-            className="bg-[#394F91] rounded-2xl p-4"
+            className="bg-[#394F91] rounded-2xl p-4 mt-4"
             onPress={() => refetchFueled()}
           >
             <Text className="text-white text-center font-semibold">Retry</Text>
@@ -253,7 +306,7 @@ const Trip = () => {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
-          <Text className="text-lg text-gray-500">No data found.</Text>
+          <Text className="text-lg text-gray-500">No fueled trips found.</Text>
         </View>
       );
     }
@@ -261,15 +314,23 @@ const Trip = () => {
     return (
       <FlatList
         data={fueledData}
-        renderItem={renderTripsFeuledIem}
-        keyExtractor={(item) => item.request_id.toString()}
-        className="mt-4"
-        contentContainerStyle={{ paddingBottom: 150 }}
+        renderItem={renderFueledTripsItem}
+        keyExtractor={(item, index) => `${item.request_id || index}`}
+        contentContainerStyle={{ paddingBottom: 200 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleTripsFueledRefresh}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleFueledRefresh} />
+        }
+        onEndReached={loadMoreFueledData}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={() => renderFooter(
+          hasFueledNextPage, 
+          isFetchingFueledNextPage, 
+          fueledData.length
+        )}
+        ListEmptyComponent={
+          <View className="flex-1 justify-center items-center py-10">
+            <Text className="text-gray-500">No fueled trips found</Text>
+          </View>
         }
       />
     );
@@ -291,7 +352,7 @@ const Trip = () => {
         </View>
 
         {/* Search Bar */}
-        <View className="mt-4 mx-6 mb-2  flex-row items-center border-gray-300 border bg-white rounded-lg p-4">
+        <View className="mt-4 mx-6 mb-2 flex-row items-center border-gray-300 border bg-white rounded-lg p-4">
           <SearchIcon />
           <TextInput
             placeholder="Find Vendor"
@@ -310,10 +371,10 @@ const Trip = () => {
             {renderToBeFueledTripsContent()}
           </TabsContent>
 
-          <TabsContent value="fueled">{renderTripsFeuledContent()}</TabsContent>
+          <TabsContent value="fueled">
+            {renderFueledTripsContent()}
+          </TabsContent>
         </Tabs>
-
-        <View className="w-full mx-6"></View>
       </View>
     </SafeAreaView>
   );
