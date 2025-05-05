@@ -121,6 +121,13 @@ const  CustomerLayout =() => {
           headerShown:false
         }}
       />
+        <Tabs.Screen
+        name="products"
+        options={{
+          href: null, 
+          headerShown:false
+        }}
+      />
     </Tabs>
     </ProtectedRoute>
   );

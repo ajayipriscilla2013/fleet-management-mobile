@@ -30,8 +30,10 @@ import Bg from "@/assets/images/image4.png";
 import Headphone from "@/assets/svgs/music.svg";
 
 import { useQuery } from '@tanstack/react-query';
-import { getDrivers, getTrucks, getVendors } from "@/src/services/other";
+import { getDrivers, getProductType, getTrucks, getVendors } from "@/src/services/other";
 import { useAuth } from "@/src/context/AuthContext";
+import { Image as ExpoImage } from 'expo-image';
+
 
 
 const Home = () => {
@@ -43,6 +45,14 @@ const Home = () => {
   const handlePress = (path) => {
     router.push(path);
   };
+
+   const {
+      data: productsData,
+      isLoading: isLoadingProducts,
+      isError: isErrorProducts,
+    } = useQuery({
+      queryKey: ['products'], 
+      queryFn: getProductType});
 
   const {
     data: trucksData,
@@ -67,12 +77,36 @@ const Home = () => {
     queryKey: ['drivers'], 
     queryFn: getDrivers});
 
-
+    // const fallbackProductImage = "https://cdn.pixabay.com/photo/2022/04/24/16/01/beach-7153932_1280.jpg";
+    const fallbackProductImage = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExeTA1OHdzbWN1aWlqZXQybTBtemZvanc3MjloeXZsaTE1d2N5NnY1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MFTvSzSu3ceE8/giphy.gif";
     const fallbackDriverImage = "https://images.pexels.com/photos/697509/pexels-photo-697509.jpeg?auto=compress&cs=tinysrgb&w=800";
     const fallbackTruckImage = "https://images.pexels.com/photos/188679/pexels-photo-188679.jpeg?auto=compress&cs=tinysrgb&w=800";
     const fallbackVendorImage = "https://images.pexels.com/photos/18335589/pexels-photo-18335589/free-photo-of-view-of-a-petrol-station-at-sunset.jpeg?auto=compress&cs=tinysrgb&w=800";
 
- 
+const renderProductItem = ({ item }) => (
+  <View className="mr-4">
+    <ExpoImage
+      source={item.image || fallbackProductImage}
+      style={{ height: 210, width: 298, borderRadius: 12, backgroundColor: '#E2E8F0' }}
+      contentFit="cover"
+    />
+    <Text className="mt-2 text-lg font-bold mb-1 capitalize">{item.name}</Text>
+    {/* <View className="flex flex-row items-center gap-1 mb-1">
+      <LocationIcon />
+      <Text className="text-[#1D1E20]">{item.address}</Text>
+    </View> */}
+    {/* <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-1">
+        <StarIcon />
+        <Text className="text-[#1D1E20] ">{item.email}</Text>
+      </View>
+      <View className="flex-row items-center gap-1 ">
+        <RepeatIcon />
+        <Text className="text-[#1D1E20]">{item.vendor_type_name}</Text>
+      </View>
+    </View> */}
+  </View>
+);
 
   const renderVendorItem = ({ item }) => (
     <View className="mr-4">
@@ -172,6 +206,29 @@ const Home = () => {
       </View>
 
       <ScrollView className="flex-1 bg-[#F9F9F9] ">
+
+           {/*Products */}
+                <View className="mt-6 mb-8 mx-6">
+                  <View className="flex-row justify-between">
+                    <Text className="text-lg font-semibold text-[#202020] ">
+                      Products
+                    </Text>
+                    <TouchableOpacity onPress={() => handlePress("/customer/products")}>
+                      <View className="flex flex-row items-center gap-1">
+                        <Text className="text-[#394F91] text-xs ">View All</Text>
+                        <ArrowRight />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  <FlatList
+                    horizontal
+                    data={productsData}
+                    renderItem={renderProductItem}
+                    keyExtractor={(item) => item.id.toString()}
+                    showsHorizontalScrollIndicator={false}
+                    className="mt-4"
+                  />
+                </View>
         {/* Vendors */}
         <View className="mt-6 mb-8 mx-6">
           <View className="flex-row justify-between">
