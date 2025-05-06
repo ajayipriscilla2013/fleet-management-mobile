@@ -1,12 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "./api";
 
-export const getCompletedTripsForDriver = async () => {
+export const getCompletedTripsForDriver = async ({ pageParam = 1 }) => {
   const userId = await AsyncStorage.getItem("user_id");
   try {
     const response = await API.post("trip/trip.php", {
       dataname: "getCompletedTripForDriver",
       driver_id: userId,
+      page: pageParam,
     });
     //   if (response.data.error === "Not Found") {
     //     throw new Error("No trips found");
@@ -15,14 +16,20 @@ export const getCompletedTripsForDriver = async () => {
 
     //     return response.data.data
     //   }
-    return response.data.data;
+    return {
+      data: response.data.data || [],
+      nextPage: response.data.pagination?.current_page < response.data.pagination?.total_pages 
+        ? pageParam + 1 
+        : undefined,
+      currentPage: pageParam,
+    };
   } catch (error) {
     console.error("Error fetching completed trips for Driver:", error);
     throw error; // Re-throw the error to be handled by the caller
   }
 };
 
-export const getInitiatedTripsForDriver = async () => {
+export const getInitiatedTripsForDriver = async ({ pageParam = 1 }) => {
   const userId = await AsyncStorage.getItem("user_id");
   console.log(userId);
 
@@ -30,17 +37,16 @@ export const getInitiatedTripsForDriver = async () => {
     const response = await API.post("trip/trip.php", {
       dataname: "getInitiatedTripForDriver",
       driver_id: userId,
+      page: pageParam,
     });
-    //   if (response.data.error === "Not Found") {
-    //     throw new Error("No trips found");
-    //  }
-    //   else {
 
-    //     return response.data.data
-    //   }
-
-    // console.log("api response:", response.data);
-    return response.data.data;
+    return {
+      data: response.data.data || [],
+      nextPage: response.data.pagination?.current_page < response.data.pagination?.total_pages 
+        ? pageParam + 1 
+        : undefined,
+      currentPage: pageParam,
+    };
     // return response.data.data
   } catch (error) {
     console.error("Error fetching initiated trips for driver:", error);
@@ -48,12 +54,13 @@ export const getInitiatedTripsForDriver = async () => {
   }
 };
 
-export const getInProgressTripsForDriver = async () => {
+export const getInProgressTripsForDriver = async ({ pageParam = 1 }) => {
   const userId = await AsyncStorage.getItem("user_id");
   try {
     const response = await API.post("trip/trip.php", {
       dataname: "getInProgressTripForDriver",
       driver_id: userId,
+      page: pageParam,
     });
     //   if (response.data.error === "Not Found") {
     //     throw new Error("No trips found");
@@ -62,7 +69,13 @@ export const getInProgressTripsForDriver = async () => {
 
     //     return response.data.data
     //   }
-    return response.data.data;
+    return {
+      data: response.data.data || [],
+      nextPage: response.data.pagination?.current_page < response.data.pagination?.total_pages 
+        ? pageParam + 1 
+        : undefined,
+      currentPage: pageParam,
+    };
   } catch (error) {
     console.error("Error fetching InProgress trips:", error);
     throw error; // Re-throw the error to be handled by the caller

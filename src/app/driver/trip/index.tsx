@@ -3,7 +3,6 @@ import {
   SafeAreaView,
   Text,
   View,
-  Pressable,
   TouchableOpacity,
   TextInput,
   Platform,
@@ -13,12 +12,9 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
-import { router, Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import SearchIcon from "@/assets/svgs/search.svg";
 import FilterIcon from "@/assets/svgs/filter.svg";
-import ClockIcon from "@/assets/svgs/clock.svg";
 import LocationIcon from "@/assets/svgs/location2.svg";
 import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
@@ -35,18 +31,18 @@ import EmptyScreen from "@/assets/svgs/empty.svg";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import SkeletonLoader from "@/components/TripsSkeletonLoader";
-import { requestFuel,  } from "@/src/services/other";
+import { requestFuel } from "@/src/services/other";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 dayjs.extend(localizedFormat);
 
 const Trip = () => {
-  const tripId = 12334
-  const router = useRouter();
   const { tab } = useLocalSearchParams();
-  const queryClient = useQueryClient()
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState(tab || "initiated");
-  const [refreshing, setRefreshing] = useState(false); // State to manage refreshing
+  const [refreshing, setRefreshing] = useState(false);
 
   // Query to get the current fuel request status
   const {
@@ -67,23 +63,7 @@ const Trip = () => {
       Alert.alert("Success", "Fuel Requested");
       // Refetch the fuel status after a successful request
       refetchFuelStatus();
-      queryClient.invalidateQueries("fuelRequestStatus")
-    },
-    onError: (error) => {
-      // Check if the error response contains a message
-      const errorMessage =
-        error.message || "Request Failed, Try Again";
-      console.log(error);
-      Alert.alert("Error", `${errorMessage}`);
-    },
-  });
-
-  const makeFuelEntryMutation = useMutation({
-    mutationFn: () => makeFuelEntry(), // You'll need to create this function in your services
-    onSuccess: () => {
-      console.log("Fuel Entry Made");
-      Alert.alert("Success", "Fuel Entry Made");
-      refetchFuelStatus();
+      queryClient.invalidateQueries("fuelRequestStatus");
     },
     onError: (error) => {
       const errorMessage = error.message || "Request Failed, Try Again";
@@ -97,49 +77,62 @@ const Trip = () => {
   };
 
   const handleMakeFuelEntry = () => {
-    // Navigate to fuel entry screen or trigger the mutation
+    // Navigate to fuel entry screen
     router.push(`/driver/trip/make-fuel-entry`);
-    // Alternatively, if you want to use mutation:
-    // makeFuelEntryMutation.mutate();
   };
 
+  // Query for initiated trips
   const {
-    data: initiatedTripsData = [],
+    data: initiatedTripsPage = [],
     isLoading: isInitiatedProgressLoading,
     error: initiatedError,
     refetch: refetchInitiatedTrips,
-  } = useQuery({
+    fetchNextPage: fetchNextInitiatedTripsPage,
+    hasNextPage: hasInitiatedTripsNextPage,
+    isFetchingNextPage: isFetchingInitiatedTripsNextPage
+  } = useInfiniteQuery({
     queryKey: ["initiatedTripsForDriver"],
     queryFn: getInitiatedTripsForDriver,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
+  // Query for in-progress trips
   const {
-    data: inProgressTripsData = [],
+    data: inProgressTripsPage = [],
     error: inProgressError,
-    isError: isInProgressError,
     isLoading: isInProgressLoading,
     refetch: refetchInProgressTrips,
-  } = useQuery({
+    fetchNextPage: fetchNextInProgressTripsPage,
+    hasNextPage: hasInProgressTripsNextPage,
+    isFetchingNextPage: isFetchingInProgressTripsNextPage
+  } = useInfiniteQuery({
     queryKey: ["inProgressTripsForDriver"],
     queryFn: getInProgressTripsForDriver,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
+  // Query for completed trips
   const {
-    data: deliveredTripsData = [],
-    error: deliveredError,
-    isError: isDeliveredError,
-    isLoading: isDeliveredLoading,
-    refetch: refetchDeliveredTrips,
-  } = useQuery({
-    queryKey: ["deliveredTripsForDriver"],
+    data: completedTripsPage = [],
+    error: completedError,
+    isLoading: isCompletedLoading,
+    refetch: refetchCompletedTrips,
+    fetchNextPage: fetchNextCompletedTripsPage,
+    hasNextPage: hasCompletedTripsNextPage,
+    isFetchingNextPage: isFetchingCompletedTripsNextPage
+  } = useInfiniteQuery({
+    queryKey: ["completedTripsForDriver"],
     queryFn: getCompletedTripsForDriver,
-   
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
   useEffect(() => {
     refetchInitiatedTrips();
     refetchInProgressTrips();
-    refetchDeliveredTrips();
+    refetchCompletedTrips();
     refetchFuelStatus();
   }, []);
 
@@ -149,7 +142,7 @@ const Trip = () => {
     await Promise.all([
       refetchInitiatedTrips(),
       refetchInProgressTrips(),
-      refetchDeliveredTrips(),
+      refetchCompletedTrips(),
       refetchFuelStatus(),
     ]);
     setRefreshing(false);
@@ -159,11 +152,58 @@ const Trip = () => {
     router.push(path);
   };
 
+  // Extract the flat data from pages
+  const initiatedTripsData = initiatedTripsPage.pages?.flatMap(page => page.data) || [];
+  const inProgressTripsData = inProgressTripsPage.pages?.flatMap(page => page.data) || [];
+  const completedTripsData = completedTripsPage.pages?.flatMap(page => page.data) || [];
+
+  // Load more functions for each tab
+  const loadMoreInitiatedTripsData = () => {
+    if (hasInitiatedTripsNextPage && !isFetchingInitiatedTripsNextPage) {
+      fetchNextInitiatedTripsPage();
+    }
+  };
+
+  const loadMoreInProgressTripsData = () => {
+    if (hasInProgressTripsNextPage && !isFetchingInProgressTripsNextPage) {
+      fetchNextInProgressTripsPage();
+    }
+  };
+
+  const loadMoreCompletedTripsData = () => {
+    if (hasCompletedTripsNextPage && !isFetchingCompletedTripsNextPage) {
+      fetchNextCompletedTripsPage();
+    }
+  };
+
+  const renderFooter = (hasNextPage, isFetchingNextPage, dataLength) => {
+    if (isFetchingNextPage) {
+      return (
+        <View className="py-4 flex items-center justify-center">
+          <ActivityIndicator size="small" color="#394F91" />
+          <Text className="text-gray-500 mt-2">Loading more...</Text>
+        </View>
+      );
+    }
+    
+    if (!hasNextPage && dataLength > 0) {
+      return (
+        <View className="py-4 flex items-center justify-center">
+          <Text className="text-gray-500 text-sm">
+            End of results
+          </Text>
+        </View>
+      );
+    }
+    
+    return null;
+  };
+
   const renderTripItem = (item, status) => (
     <TouchableOpacity
       onPress={() => handlePress(`/driver/trip/${item.trip_id}`)}
     >
-      <View className="flex h-[90px] mx-3 gap-2 rounded-lg  mb-2 py-[13px] px-[18px] bg-white">
+      <View className="flex h-[90px] mx-3 gap-2 rounded-lg mb-2 py-[13px] px-[18px] bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold text-base text-[#1D1E20]">
             {item.trip_id}
@@ -193,7 +233,7 @@ const Trip = () => {
     </TouchableOpacity>
   );
 
-  const renderContent = (data, isLoading, error, status) => {
+  const renderContent = (data, isLoading, error, status, loadMoreFunction, hasNextPage, isFetchingNextPage) => {
     if (refreshing) {
       return (
         <>
@@ -203,6 +243,7 @@ const Trip = () => {
         </>
       );
     }
+    
     if (isLoading) {
       return (
         <View className="flex items-center justify-center mt-10">
@@ -223,7 +264,7 @@ const Trip = () => {
             onPress={() => {
               refetchInitiatedTrips();
               refetchInProgressTrips();
-              refetchDeliveredTrips();
+              refetchCompletedTrips();
             }}
           >
             <Text className="text-white text-center font-semibold">Retry</Text>
@@ -232,7 +273,7 @@ const Trip = () => {
       );
     }
 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
@@ -253,76 +294,21 @@ const Trip = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
+        onEndReached={loadMoreFunction}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={() => renderFooter(
+          hasNextPage, 
+          isFetchingNextPage, 
+          data.length
+        )}
+        ListEmptyComponent={
+          <View className="flex-1 justify-center items-center py-10">
+            <Text className="text-gray-500">No trips found</Text>
+          </View>
+        }
       />
     );
   };
-
-  // Determine which button to render based on the fuel request status
-  // const renderFuelButton = () => {
-  //   if (isFuelStatusLoading) {
-  //     return (
-  //       <TouchableOpacity
-  //         className="absolute bottom-4 right-4 w-1/3 bg-gray-400 p-4 rounded-lg items-center z-10"
-  //         disabled={true}
-  //       >
-  //         <ActivityIndicator color="#ffffff" />
-  //       </TouchableOpacity>
-  //     );
-  //   }
-
-  //   // Check if there's a fuel request and if its status is approved
-  //   const isApproved = fuelRequestData?.fuel_request?.status !== "approved";
-  //   const fuelingStatus = fuelRequestData?.fuel_request?.fueling_status !== "not_fueled";
-  //   const notFound = fuelRequestData?.error === "Not Found"
-
-  //   console.log(fuelRequestData);
-    
-    
-  //   // console.log("fuelRequestData?",fuelRequestData.status  );
-  //   // console.log("isApproved?",isApproved);
-    
-
-  //   if (isApproved && fuelingStatus) {
-  //     return (
-  //       <TouchableOpacity
-  //         onPress={handleMakeFuelEntry}
-  //         className="absolute bottom-4 right-4 w-1/3  bg-[#394F91] p-4 rounded-lg items-center z-10"
-  //       >
-  //         <Text className="text-white font-bold text-xs">Make Fuel Entry</Text>
-  //       </TouchableOpacity>
-  //     );
-  //   } 
-  //   // else if (notFound) {
-  //   //   return (
-  //   //     <TouchableOpacity
-  //   //       onPress={handleFuelRequest}
-  //   //       className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
-  //   //       disabled={mutation.isPending}
-  //   //     >
-  //   //       {mutation.isPending ? (
-  //   //         <ActivityIndicator color="#ffffff" />
-  //   //       ) : (
-  //   //         <Text className="text-white font-bold">Get Fuel</Text>
-  //   //       )}
-  //   //     </TouchableOpacity>
-  //   //   );
-  //   // } 
-  //   else {
-  //     return (
-  //       <TouchableOpacity
-  //         onPress={handleFuelRequest}
-  //         className="absolute bottom-4 right-4 w-1/3 bg-[#394F91] p-4 rounded-lg items-center z-10"
-  //         disabled={mutation.isPending}
-  //       >
-  //         {mutation.isPending ? (
-  //           <ActivityIndicator color="#ffffff" />
-  //         ) : (
-  //           <Text className="text-white text-xs font-bold">Request for Fuel</Text>
-  //         )}
-  //       </TouchableOpacity>
-  //     );
-  //   }
-  // };
 
   const renderFuelButton = () => {
     if (isFuelStatusLoading) {
@@ -437,7 +423,10 @@ const Trip = () => {
               initiatedTripsData,
               isInitiatedProgressLoading,
               initiatedError,
-              "Initiated"
+              "Initiated",
+              loadMoreInitiatedTripsData,
+              hasInitiatedTripsNextPage,
+              isFetchingInitiatedTripsNextPage
             )}
           </TabsContent>
           <TabsContent value="inProgress">
@@ -445,20 +434,24 @@ const Trip = () => {
               inProgressTripsData,
               isInProgressLoading,
               inProgressError,
-              "In Progress"
+              "In Progress",
+              loadMoreInProgressTripsData,
+              hasInProgressTripsNextPage,
+              isFetchingInProgressTripsNextPage
             )}
           </TabsContent>
           <TabsContent value="completed">
             {renderContent(
-              deliveredTripsData,
-              isDeliveredLoading,
-              deliveredError,
-              "Delivered"
+              completedTripsData,
+              isCompletedLoading,
+              completedError,
+              "Completed",
+              loadMoreCompletedTripsData,
+              hasCompletedTripsNextPage,
+              isFetchingCompletedTripsNextPage
             )}
           </TabsContent>
         </Tabs>
-
-        <View className="w-full mx-6"></View>
       </View>
 
       {/* Dynamic fuel button */}
