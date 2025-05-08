@@ -6,7 +6,7 @@ export const getTrucks = async () => {
     const response = await API.post("trip/trip.php", {
       dataname: "getTrucks",
     });
-    // console.log(response.data.data);
+
 
     return response.data.data;
   } catch (error) {
@@ -20,8 +20,7 @@ export const getTruck = async (id) => {
       dataname: "getTruck",
       truck_id: id
     });
-    // console.log("truck data",response.data.data);
-
+   
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -33,7 +32,7 @@ export const getVendors = async () => {
     const response = await API.post("trip/trip.php", {
       dataname: "getVendors",
     });
-    // console.log("vendor response", response.data.vendors);
+   
 
     return response.data.vendors;
   } catch (error) {
@@ -47,7 +46,7 @@ export const getVendor = async (id) => {
       dataname: "getVendor",
       vendor_id: id,
     });
-    // console.log("single vendor data",response.data.vendor );
+    
     return response.data.vendor
   } catch (error) {
     console.log(error);
@@ -59,7 +58,6 @@ export const getDrivers = async () => {
     const response = await API.post("trip/trip.php", {
       dataname: "getTruckDrivers",
     });
-    // console.log(response.data);
 
     return response.data.data;
   } catch (error) {
@@ -73,7 +71,6 @@ export const getCustomer = async (customerId) => {
       customer_id: customerId,
       dataname: "getCustomer",
     });
-    // console.log(response.data);
 
     return response.data.data;
   } catch (error) {
@@ -88,7 +85,6 @@ export const getDriver = async (driverId) => {
       driver_id: driverId,
       dataname: "getTruckDriver",
     });
-    // console.log("driver single",response.data.driver);
     return response.data.driver;
   } catch (error) {
     console.log(error);
@@ -100,29 +96,35 @@ export const getTrips = async () => {
     const response = await API.post("trip/trip.php", {
       dataname: "getTrips",
     });
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.log(error);
   }
 };
 
-export const getInitiatedTrips = async () => {
+export const getInitiatedTrips = async ({ pageParam = 1 }) => {
   try {
     const response = await API.post("trip/trip.php", {
       dataname: "getInitiatedTrips",
+      page: pageParam,
     });
-    // console.log(response.data.data);
-    return response.data.data;
+    return {
+      data: response.data.data || [],
+      nextPage: response.data.pagination?.current_page < response.data.pagination?.total_pages 
+        ? pageParam + 1 
+        : undefined,
+      currentPage: pageParam,
+    };
   } catch (error) {
     console.log(error);
   }
 };
 
-export const getInProgressTrips = async () => {
+export const getInProgressTrips = async ({ pageParam = 1 }) => {
   try {
     const response = await API.post("trip/trip.php", {
       dataname: "getInProgressTrips",
+      page: pageParam,
     });
     
   //   if (response.data.error === "Not Found") {
@@ -132,17 +134,24 @@ export const getInProgressTrips = async () => {
      
   //     return response.data.data
   //   }
-  return response.data.data
+  return {
+    data: response.data.data || [],
+    nextPage: response.data.pagination?.current_page < response.data.pagination?.total_pages 
+      ? pageParam + 1 
+      : undefined,
+    currentPage: pageParam,
+  };
   } catch (error) {
     // console.error("Error fetching in-progress trips:", error);
     throw error; // Re-throw the error to be handled by the caller
   }
 };
 
-export const getCompletedTrips = async () => {
+export const getCompletedTrips = async ({ pageParam = 1 }) => {
   try {
     const response = await API.post("trip/trip.php", {
       dataname: "getCompletedTrips",
+      page: pageParam,
     });
   //   if (response.data.error === "Not Found") {
   //     throw new Error("No trips found");
@@ -151,7 +160,13 @@ export const getCompletedTrips = async () => {
      
   //     return response.data.data
   //   }
-  return response.data.data
+  return {
+    data: response.data.data || [],
+    nextPage: response.data.pagination?.current_page < response.data.pagination?.total_pages 
+      ? pageParam + 1 
+      : undefined,
+    currentPage: pageParam,
+  };
   } catch (error) {
     console.error("Error fetching completed trips:", error);
     throw error; // Re-throw the error to be handled by the caller

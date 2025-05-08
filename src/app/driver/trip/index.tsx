@@ -96,7 +96,6 @@ const Trip = () => {
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 1,
   });
-
   // Query for in-progress trips
   const {
     data: inProgressTripsPage = [],

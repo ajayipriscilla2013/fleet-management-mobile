@@ -21,7 +21,7 @@ import CalendarIcon from "@/assets/svgs/calendar.svg";
 import ArrowIcon from "@/assets/svgs/arrow-right2.svg";
 import { Badge } from "@/components/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import {
   getCompletedTrips,
   getFuelRequests,
@@ -51,35 +51,50 @@ const Trip = () => {
   
 
   const {
-    data: initiatedTripsData=[],
+    data: initiatedTripsPage=[],
     isLoading: isInitiatedProgressLoading,
     error: initiatedError,
-    refetch:refetchInitiatedTripsData
-  } = useQuery({
+    refetch:refetchInitiatedTripsData,
+    fetchNextPage: fetchNextInitiatedTripsPage,
+    hasNextPage: hasInititatedTripsNextPage,
+    isFetchingNextPage: isFetchingInitiatedTripsNextPage
+  } = useInfiniteQuery({
     queryKey: ["initiatedTripsForAdmin"],
     queryFn: getInitiatedTrips,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
+
   const {
-    data: inProgressTripsData = [],
+    data: inProgressTripsPage = [],
     error: inProgressError,
-    isError: isInProgressError,
     isLoading: isInProgressLoading,
-    refetch:refetchInProgressTripsData
-  } = useQuery({
+    refetch: refetchInProgressTripsData,
+    fetchNextPage: fetchNextInProgressTripsPage,
+    hasNextPage: hasInProgressTripsNextPage,
+    isFetchingNextPage: isFetchingInProgressTripsNextPage
+  } = useInfiniteQuery({
     queryKey: ["inProgressTripsForAdmin"],
     queryFn: getInProgressTrips,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
   const {
-    data: deliveredTripsData = [],
+    data: deliveredTripsPage = [],
     error: deliveredError,
     isError: isDeliveredError,
     isLoading: isDeliveredLoading,
-    refetch: refetchDeliveredTripsData
-  } = useQuery({
+    refetch: refetchDeliveredTripsData,
+    fetchNextPage: fetchNextDeliveredTripsPage,
+    hasNextPage: hasDeliveredTripsNextPage,
+    isFetchingNextPage: isFetchingDeliveredTripsNextPage
+  } = useInfiniteQuery({
     queryKey: ["deliveredTripsForAdmin"],
     queryFn: getCompletedTrips,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
   });
 
   const {
@@ -103,6 +118,26 @@ const Trip = () => {
     queryKey: ["Pending Fuel Requests"],
     queryFn: getFuelRequests,
   });
+
+  // Load more data for "Initiated" tab
+  const loadMoreInitiatedTripsData = () => {
+    if (hasInititatedTripsNextPage && !isFetchingInitiatedTripsNextPage) {
+      fetchNextInitiatedTripsPage();
+    }
+  };
+
+    // Load more data for "In Progress" tab
+    const loadMoreInProgressTripsData = () => {
+      if (hasInProgressTripsNextPage && !isFetchingInProgressTripsNextPage) {
+        fetchNextInProgressTripsPage();
+      }
+    };
+    // Load more data for "Delivered" tab
+    const loadMoreDeliveredTripsData = () => {
+      if (hasDeliveredTripsNextPage && !isFetchingDeliveredTripsNextPage) {
+        fetchNextDeliveredTripsPage();
+      }
+    };
 
   const handleInitiatedTripsDataRefresh = async () => {
     setRefreshing(true);
@@ -140,12 +175,41 @@ const Trip = () => {
     setRefreshing(false);
   };
 
+  // Extract the flat data from pages
+  const initiatedTripsData = initiatedTripsPage.pages?.flatMap(page => page.data) || [];
+  const inProgressTripsData = inProgressTripsPage.pages?.flatMap(page => page.data) || [];
+  const deliveredTripsData = deliveredTripsPage.pages?.flatMap(page => page.data) || [];
+
+
   useEffect(()=>{
     refetchInitiatedTripsData()
     refetchInProgressTripsData()
     refetchDeliveredTripsData()
     refetchPendingFuelRequestData()
   },[])
+
+   const renderFooter = (hasNextPage, isFetchingNextPage, dataLength) => {
+      if (isFetchingNextPage) {
+        return (
+          <View className="py-4 flex items-center justify-center">
+            <ActivityIndicator size="small" color="#394F91" />
+            <Text className="text-gray-500 mt-2">Loading more...</Text>
+          </View>
+        );
+      }
+      
+      if (!hasNextPage && dataLength > 0) {
+        return (
+          <View className="py-4 flex items-center justify-center">
+            <Text className="text-gray-500 text-sm">
+              End of results
+            </Text>
+          </View>
+        );
+      }
+      
+      return null;
+    };
 
   const renderInititatedTripItem = ({ item }) => (
     <TouchableOpacity
@@ -277,7 +341,7 @@ const Trip = () => {
       );
     }
 
-    if (isInProgressError) {
+    if (inProgressError) {
       return (
         <View className="flex items-center justify-center mt-10">
           <EmptyScreen />
@@ -320,6 +384,18 @@ const Trip = () => {
         refreshControl={ 
           <RefreshControl refreshing={refreshing} onRefresh={handleInProgressTripsDataRefresh} />
         }
+        onEndReached={loadMoreInProgressTripsData}
+        onEndReachedThreshold={0.3}
+         ListFooterComponent={() => renderFooter(
+          hasInProgressTripsNextPage, 
+          isFetchingInProgressTripsNextPage, 
+          inProgressTripsData.length
+                )}
+                ListEmptyComponent={
+                  <View className="flex-1 justify-center items-center py-10">
+                    <Text className="text-gray-500">No trips found</Text>
+                  </View>
+                }
       />
     );
   };
@@ -386,6 +462,18 @@ const Trip = () => {
         refreshControl={ 
           <RefreshControl refreshing={refreshing} onRefresh={handleDeliveredTripsDataRefresh} />
         }
+        onEndReached={loadMoreDeliveredTripsData}
+        onEndReachedThreshold={0.3}
+         ListFooterComponent={() => renderFooter(
+          hasDeliveredTripsNextPage, 
+          isFetchingDeliveredTripsNextPage, 
+          deliveredTripsData.length
+                )}
+                ListEmptyComponent={
+                  <View className="flex-1 justify-center items-center py-10">
+                    <Text className="text-gray-500">No trips found</Text>
+                  </View>
+                }
       />
     );
   };
@@ -446,6 +534,18 @@ const Trip = () => {
         refreshControl={ 
           <RefreshControl refreshing={refreshing} onRefresh={handleInitiatedTripsDataRefresh} />
         }
+        onEndReached={loadMoreInitiatedTripsData}
+        onEndReachedThreshold={0.3}
+         ListFooterComponent={() => renderFooter(
+          hasInititatedTripsNextPage, 
+          isFetchingInitiatedTripsNextPage, 
+          initiatedTripsData.length
+                )}
+                ListEmptyComponent={
+                  <View className="flex-1 justify-center items-center py-10">
+                    <Text className="text-gray-500">No trips found</Text>
+                  </View>
+                }
       />
     );
   };
