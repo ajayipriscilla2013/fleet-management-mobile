@@ -3,11 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import { router, useRouter } from "expo-router";
 
-
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || "http://fmabackend.charissatics.com/api/",
 });
-
 
 
 export const loginUser = async (body) => {

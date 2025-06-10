@@ -1,5 +1,12 @@
 {
     "build": {
+      "development": {
+        "developmentClient": true,
+        "distribution": "internal",
+        "android": {
+          "buildType": "apk"
+        }
+     },
       "charissatics": {
         "android": {
           "gradleCommand": ":app:assembleRelease"  
@@ -10,7 +17,7 @@
           "buildType": "apk"
         },
         "env": {
-          "ANDROID_HOME": "/Users/treasure-praise/Library/Android/sdk"
+          "ANDROID_HOME": "/Users/apple/Library/Android/sdk"
       }
       },
       "preview3": {
