@@ -60,5 +60,6 @@ android
 .apk
 .aab
 
+#
 ios
 yarn.lock

@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 import { router, useRouter } from "expo-router";
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://fmabackend.charissatics.com/api/",
+  baseURL: process.env.REACT_APP_API_BASE_URL || "http://5.189.157.41/api/", //"http://fmabackend.charissatics.com/api/",
 });
 
 
