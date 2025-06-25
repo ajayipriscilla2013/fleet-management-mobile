@@ -63,3 +63,7 @@ android
 #
 ios
 yarn.lock
+# Ignore these files
+package-lock.json
+src/app/_layout.tsx
+src/services/api.js
