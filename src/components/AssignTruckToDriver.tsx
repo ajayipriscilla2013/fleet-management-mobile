@@ -9,7 +9,7 @@ import { getTrucks } from '@/src/services/other';
 
 const assignDriverSchema = z.object({
   driver_id: z.string().min(1, "Driver is required"),
-  truck_id: z.number().min(1, "Truck is required"),
+  truck_id: z.string().min(1, "Truck is required"),
 });
 
 const AssignDriverToTruckScreen = () => {
