@@ -2,18 +2,16 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["src/*"]
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "src",
+    "components",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "src/context/AuthContext.js",
     "nativewind-env.d.ts"
   ]
 }

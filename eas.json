@@ -1,31 +1,38 @@
 {
-    "build": {
-      "development": {
-        "developmentClient": true,
-        "distribution": "internal",
-        "android": {
-          "buildType": "apk"
-        }
-     },
-      "charissatics": {
-        "android": {
-          "gradleCommand": ":app:assembleRelease"  
-        }
-      },
-      "preview": {
-        "android": {
-          "buildType": "apk"
-        },
-        "env": {
-          "ANDROID_HOME": "/Users/apple/Library/Android/sdk"
+  "cli": {
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
       }
+    },
+    "charissatics": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview": {
+      "android": {
+        "buildType": "apk"
       },
-      "preview3": {
-        "developmentClient": true
-      },
-      "preview4": {
-        "distribution": "internal"
-      },
-      "production": {}
+      "env": {
+        "ANDROID_HOME": "/Users/apple/Library/Android/sdk"
+      }
+    },
+    "preview3": {
+      "developmentClient": true
+    },
+    "preview4": {
+      "distribution": "internal"
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      }
     }
   }
+}

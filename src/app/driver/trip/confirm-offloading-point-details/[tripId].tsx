@@ -26,13 +26,15 @@ import { Picker } from "@react-native-picker/picker";
 const offloadingSchema = z.object({
   offloading_qty: z.coerce.number().min(1, "Tonnage Offloaded is required"),
   waybill_no: z.coerce.string().nonempty("Waybill Number is required"),
-  odometer_reading: z.coerce
+  remarks: z.string().min(1, "Remarks is Required"),
+  delivery_location: z.string().nonempty("Delivery location required"),
+  //product_picture: z.string().nonempty("Product picture is required"),
+
+   /*odometer_reading: z.coerce
     .string()
     .nonempty("Odometer Reading is required")
-    .regex(/^[0-9]*$/, "Must be a valid number"),
-  remarks: z.string().min(1, "Remarks is Required"),
-  product_picture: z.string().nonempty("Product picture is required"),
-  delivery_location: z.string().nonempty("Delivery location required"),
+    .regex(/^[0-9]*$/, "Must be a valid number"), */
+    
 });
 
 const OffloadingPointScreen = () => {
