@@ -24,8 +24,8 @@ const LoadingPointScreen = () => {
     loading_qty: z.number().min(1, "Tonnage loaded is required"),
     odometer_reading: z.number().min(1, "Odometer reading is required"),
     remarks: z.string().min(1, "Provide a remark"),
-    truck_picture: z.string().min(1, "Truck picture is required"),
-    dataname: z.string().default("driverLoadingPoint"),
+    //truck_picture: z.string().min(1, "Truck picture is required"),
+    //dataname: z.string().default("driverLoadingPoint"),
   });
 
   const [isCameraVisible, setIsCameraVisible] = useState(false);

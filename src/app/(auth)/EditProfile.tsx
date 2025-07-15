@@ -4,7 +4,8 @@ import { useMutation } from '@tanstack/react-query';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/src/context/AuthContext';
+//import { useAuth } from '@/src/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/Input';
 
 // Validation Schema using zod
