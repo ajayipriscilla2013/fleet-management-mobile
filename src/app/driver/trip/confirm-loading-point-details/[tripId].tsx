@@ -42,29 +42,29 @@ const LoadingPointScreen = () => {
     dataname: 'driverLoadingPoint',
   });
 
-   // Request location permission and get the user's location
-  useEffect(() => {
-      (async () => {
-        try {
-          let { status } = await Location.requestForegroundPermissionsAsync();
-          console.log("Location Permission Status:", status);
+  //  // Request location permission and get the user's location
+  // useEffect(() => {
+  //     (async () => {
+  //       try {
+  //         let { status } = await Location.requestForegroundPermissionsAsync();
+  //         console.log("Location Permission Status:", status);
     
-          if (status !== "granted") {
-            Alert.alert("Permission to access location was denied");
-            return;
-          }
+  //         if (status !== "granted") {
+  //           Alert.alert("Permission to access location was denied");
+  //           return;
+  //         }
     
-          let currentLocation = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-          });
+  //         let currentLocation = await Location.getCurrentPositionAsync({
+  //           accuracy: Location.Accuracy.High,
+  //         });
     
-          console.log("Current Location:", currentLocation);
-          setLocation(currentLocation);
-        } catch (error) {
-          console.error("Error fetching location:", error);
-        }
-      })();
-    }, []);
+  //         console.log("Current Location:", currentLocation);
+  //         setLocation(currentLocation);
+  //       } catch (error) {
+  //         console.error("Error fetching location:", error);
+  //       }
+  //     })();
+  //   }, []);
   
   const [image, setImage] = useState(null);
   
